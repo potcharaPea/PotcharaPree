@@ -125,11 +125,11 @@ select.form-input option{background:var(--bg2);}
 <div class="header">
   <div>
     <div class="header-title">คลังแก้ไฟ กฟส.คำชะอี</div>
-    <div class="header-sub">PEA INVENTORY v1.3</div>
+    <div class="header-sub">PEA INVENTORY v1.4</div>
   </div>
   <div class="header-right">
     <button class="sync-btn" onclick="syncAll()">↻ Sync</button>
-    <div class="header-badge">v1.3</div>
+    <div class="header-badge">v1.4</div>
   </div>
 </div>
 
@@ -245,14 +245,17 @@ select.form-input option{background:var(--bg2);}
     <div class="form-group">
       <label class="form-label">พิกัด GPS</label>
       <div style="display:flex;gap:8px;align-items:center;">
-        <input id="ulat" class="form-input" type="text" placeholder="Latitude" readonly style="flex:1;">
-        <input id="ulng" class="form-input" type="text" placeholder="Longitude" readonly style="flex:1;">
-        <button onclick="getGPS()" style="flex-shrink:0;padding:9px 12px;border-radius:6px;border:1px solid var(--accent);background:rgba(245,158,11,0.1);color:var(--accent);font-size:16px;cursor:pointer;">📍</button>
+        <input id="ulat" class="form-input" type="text" placeholder="Latitude" readonly style="flex:1;font-size:12px;">
+        <input id="ulng" class="form-input" type="text" placeholder="Longitude" readonly style="flex:1;font-size:12px;">
+        <button onclick="getGPS()" style="flex-shrink:0;padding:9px 12px;border-radius:6px;border:1px solid var(--accent);background:rgba(245,158,11,0.1);color:var(--accent);font-size:16px;cursor:pointer;">&#128205;</button>
       </div>
       <div id="gps-status" style="font-size:11px;color:var(--text2);margin-top:4px;"></div>
     </div>
     <div class="form-group"><label class="form-label">กะ</label>
       <select id="us" class="form-input"><option>กะเช้า</option><option>กะบ่าย</option><option>กะดึก</option></select>
+    </div>
+    <div class="form-group"><label class="form-label">หมายเหตุ</label>
+      <input id="unote" class="form-input" type="text" placeholder="หมายเหตุเพิ่มเติม (ถ้ามี)">
     </div>
     <div style="background:var(--bg3);border-radius:8px;padding:12px;margin-bottom:10px;">
       <div style="font-size:12px;color:var(--accent);margin-bottom:10px;font-weight:500;">เลือกอุปกรณ์ที่ใช้</div>
@@ -263,7 +266,7 @@ select.form-input option{background:var(--bg2);}
         <select id="ui" class="form-input"></select>
       </div>
       <div class="form-group"><label class="form-label">จำนวน</label><input id="uq" class="form-input" type="number" min="1" value="1"></div>
-      <button onclick="addToJobList()" style="width:100%;padding:10px;border-radius:6px;border:1px solid var(--info);background:rgba(59,130,246,0.1);color:var(--info);font-size:14px;font-weight:500;cursor:pointer;font-family:'IBM Plex Sans Thai',sans-serif;">+ เพิ่มรายการ</button>
+      <button onclick="addToJobList()" style="width:100%;padding:10px;border-radius:6px;border:1px solid var(--info);background:rgba(59,130,246,0.1);color:var(--info);font-size:14px;font-weight:500;cursor:pointer;">+ เพิ่มรายการ</button>
     </div>
     <div id="joblist" style="margin-bottom:10px;"></div>
     <button class="btn-submit" onclick="doUse()" id="submitJobBtn" style="display:none;">บันทึกงานแก้ไฟ</button>
@@ -305,6 +308,25 @@ cats.forEach(function(c){openWh[c]=false;openTr[c]=false;});
 var editCode='';
 var pages=['w','t','k','u','r'];
 var navBtns=document.querySelectorAll('.nav-btn');
+
+// ── TIME FORMAT ──
+function fmtTime(raw){
+  if(!raw)return'-';
+  var s=String(raw);
+  // ISO format: 2025-05-07T09:17:38.000Z
+  if(s.includes('T')&&s.includes('Z')){
+    var d=new Date(s);
+    if(!isNaN(d)){
+      var day=String(d.getDate()).padStart(2,'0');
+      var mon=String(d.getMonth()+1).padStart(2,'0');
+      var yr=d.getFullYear()+543;
+      var h=String(d.getHours()).padStart(2,'0');
+      var m2=String(d.getMinutes()).padStart(2,'0');
+      return day+'/'+mon+'/'+yr+' '+h+':'+m2;
+    }
+  }
+  return s;
+}
 
 // ── UNIT DISPLAY ──
 function unitTH(unit) {
@@ -688,23 +710,67 @@ function doReturn(){
 // ── REPORT ──
 function renderReport(){
   apiGet('getLogs',function(err,data){
-    if(err){document.getElementById('rlist').innerHTML='<div class="empty">โหลดไม่ได้ กด Sync ครับ</div>';return;}
+    if(err){document.getElementById('rlist').innerHTML='<div class="empty">โหลดไม่ได้ กด Sync</div>';return;}
     logs=data;
     var w=logs.filter(function(l){return l.type==='เบิกขึ้นรถ';}).length;
     var u=logs.filter(function(l){return l.type==='งานแก้ไฟ';}).length;
     document.getElementById('rc1').textContent=w;
     document.getElementById('rc2').textContent=u;
     if(!logs.length){document.getElementById('rlist').innerHTML='<div class="empty">ยังไม่มีรายการ</div>';return;}
-    document.getElementById('rlist').innerHTML=[...logs].reverse().map(function(l){
-      var isW=l.type==='เบิกขึ้นรถ';
-      return '<div class="report-item">'
-        +'<div class="report-top"><div><div class="report-code">'+l.code+'</div><div class="report-name">'+l.name+'</div></div>'
-        +'<span class="badge '+(isW?'badge-info':'badge-out')+'">'+l.type+'</span></div>'
-        +'<div class="report-detail">'+l.qty+' '+unitTH(l.unit)+' | '+l.shift+' | '+l.location+'</div>'
-        +'<div class="report-time">'+l.timestamp+'</div></div>';
+    // จัดกลุ่มด้วย jobId
+    var groups={};
+    var order=[];
+    var rev=[].concat(logs).reverse();
+    rev.forEach(function(l){
+      var key=l.jobId||('single_'+l.timestamp+'_'+l.code);
+      if(!groups[key]){
+        groups[key]={type:l.type,shift:l.shift,location:l.location,timestamp:l.timestamp,lat:l.lat||'',lng:l.lng||'',note:l.note||'',items:[],jobId:key};
+        order.push(key);
+      }
+      groups[key].items.push({code:l.code,name:l.name,qty:l.qty,unit:l.unit});
+    });
+    document.getElementById('rlist').innerHTML=order.map(function(key,ridx){
+      var g=groups[key];
+      var isW=g.type==='เบิกขึ้นรถ';
+      var did='rdt'+ridx;
+      var bdg='<span class="badge '+(isW?'badge-info':'badge-out')+'">'+g.type+'</span>';
+      var gps=g.lat&&g.lng?'<span style="color:var(--success);">GPS </span>':'';
+      var summary=g.items.map(function(i){return i.name+' '+i.qty+' '+unitTH(i.unit);}).join(', ');
+      var detailRows=g.items.map(function(i){
+        return '<div style="display:flex;justify-content:space-between;padding:4px 0;font-size:12px;">'
+          +'<span style="color:var(--text3);font-family:monospace;">'+i.code+'</span>'
+          +'<span style="color:var(--text);flex:1;margin:0 8px;">'+i.name+'</span>'
+          +'<span style="color:var(--accent);font-family:monospace;font-weight:500;">'+i.qty+' '+unitTH(i.unit)+'</span>'
+          +'</div>';
+      }).join('');
+      var gpsRow=g.lat&&g.lng?'<div style="font-size:11px;color:var(--success);margin-top:6px;">'+g.lat+', '+g.lng+'</div>':'';
+      var noteRow=g.note?'<div style="font-size:12px;color:var(--text2);margin-top:4px;">'+g.note+'</div>':'';
+      return '<div class="report-item" onclick="togRpt(this)" style="cursor:pointer;">'
+        +'<div class="report-top"><div style="flex:1;min-width:0;">'
+        +'<div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">'+bdg+'<span style="font-size:11px;color:var(--text2);">'+g.items.length+' รายการ</span></div>'
+        +'<div class="report-name">'+gps+g.location+'</div>'
+        +'</div><span class="rpt-arrow" style="color:var(--text3);font-size:16px;margin-left:8px;">&#9660;</span></div>'
+        +'<div class="report-detail" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:4px;">'+summary+'</div>'
+        +'<div class="report-time">'+fmtTime(g.timestamp)+' | '+g.shift+'</div>'
+        +'<div class="rpt-detail" style="display:none;margin-top:10px;border-top:1px solid var(--border);padding-top:10px;">'
+        +detailRows+gpsRow+noteRow+'</div>'
+        +'</div>';
     }).join('');
   });
 }
+function togRpt(card){
+  var el=card.querySelector('.rpt-detail');
+  var arr=card.querySelector('.rpt-arrow');
+  if(!el)return;
+  if(el.style.display==='none'){
+    el.style.display='block';
+    if(arr)arr.innerHTML='&#9650;';
+  } else {
+    el.style.display='none';
+    if(arr)arr.innerHTML='&#9660;';
+  }
+}
+
 
 // ── MSG ──
 function showMsg(text,ok){
