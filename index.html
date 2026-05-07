@@ -871,11 +871,11 @@ function renderRptList() {
     if (ts.indexOf('T')>0) {
       // ISO format: 2569-05-07T... (ปี พ.ศ.)
       var p=ts.split('T')[0].split('-');
-      if (p.length===3) { month=MN[parseInt(p[1])-1]+' '+p[0]; }
+      if (p.length===3) { var yrISO=parseInt(p[0]); if(yrISO<2500) yrISO+=543; month=MN[parseInt(p[1])-1]+' '+yrISO; }
     } else if (ts.indexOf('/')>0) {
       // dd/MM/yyyy format
       var p2=ts.split(' ')[0].split('/');
-      if (p2.length===3) month=MN[parseInt(p2[1])-1]+' '+p2[2];
+      if (p2.length===3) { var yrSlash=parseInt(p2[2]); if(yrSlash<2500) yrSlash+=543; month=MN[parseInt(p2[1])-1]+' '+yrSlash; }
     }
     if (!monthMap[month]) { monthMap[month]=[]; monthOrder.push(month); }
     monthMap[month].push(key);
