@@ -127,11 +127,11 @@ select.fi option{background:var(--bg2);}
 <div class="hdr">
   <div>
     <div class="hdr-title">คลังแก้ไฟ กฟส.คำชะอี</div>
-    <div class="hdr-sub">PEA INVENTORY v0.10</div>
+    <div class="hdr-sub">PEA INVENTORY v0.11</div>
   </div>
   <div style="display:flex;align-items:center;gap:8px;">
     <button class="sync-btn" onclick="syncAll()">↻ Sync</button>
-    <div class="ver">v0.10</div>
+    <div class="ver">v0.11</div>
   </div>
 </div>
 
@@ -337,9 +337,17 @@ function fmtTime(raw) {
   if (!raw) return '-';
   var s = String(raw);
   if (s.indexOf('T') > 0) {
-    var d = new Date(s);
-    if (!isNaN(d)) {
-      return String(d.getDate()).padStart(2,'0') + '/' + String(d.getMonth()+1).padStart(2,'0') + '/' + (d.getFullYear()+543) + ' ' + String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0');
+    // ISO format with พ.ศ. year: 2569-05-07T03:37:10.000Z
+    var p = s.split('T');
+    var dateParts = p[0].split('-');
+    var timeParts = p[1] ? p[1].substring(0,5).split(':') : ['00','00'];
+    if (dateParts.length===3) {
+      var yr = parseInt(dateParts[0]);
+      var mon = dateParts[1];
+      var day = dateParts[2];
+      // ถ้าปีเป็น ค.ศ. ให้บวก 543
+      if (yr < 2500) yr = yr + 543;
+      return day+'/'+mon+'/'+yr+' '+timeParts[0]+':'+timeParts[1];
     }
   }
   return s;
@@ -841,12 +849,14 @@ function renderRptList() {
     _jobStore[key]=g;
     var ts=String(g.timestamp||'');
     var month='ไม่ระบุเดือน';
-    if (ts.indexOf('/')>0) {
-      var p=ts.split(' ')[0].split('/');
-      if (p.length===3) month=MN[parseInt(p[1])-1]+' '+p[2];
-    } else if (ts.indexOf('-')>0) {
-      var p2=ts.split('T')[0].split('-');
-      if (p2.length===3) { var MN2=['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.']; month=MN2[parseInt(p2[1])-1]+' '+(parseInt(p2[0])+543); }
+    if (ts.indexOf('T')>0) {
+      // ISO format: 2569-05-07T... (ปี พ.ศ.)
+      var p=ts.split('T')[0].split('-');
+      if (p.length===3) { month=MN[parseInt(p[1])-1]+' '+p[0]; }
+    } else if (ts.indexOf('/')>0) {
+      // dd/MM/yyyy format
+      var p2=ts.split(' ')[0].split('/');
+      if (p2.length===3) month=MN[parseInt(p2[1])-1]+' '+p2[2];
     }
     if (!monthMap[month]) { monthMap[month]=[]; monthOrder.push(month); }
     monthMap[month].push(key);
@@ -933,6 +943,34 @@ function renderRptList() {
       }
 
       // print button
+      // ปุ่ม Edit รายการ
+      if (key.indexOf('JOB-')===0) {
+        var editHdr=document.createElement('div');
+        editHdr.style.cssText='font-size:11px;color:var(--text2);margin:8px 0 4px;';
+        editHdr.textContent='แก้ไขรายการ:';
+        detail.appendChild(editHdr);
+        g.items.forEach(function(item){
+          var editRow=document.createElement('div');
+          editRow.style.cssText='display:flex;justify-content:space-between;align-items:center;padding:4px 0;';
+          var editName=document.createElement('span');
+          editName.style.cssText='font-size:12px;color:var(--text);flex:1;';
+          editName.textContent=item.name+' ('+item.qty+' '+unitTH(item.unit)+')';
+          var editBtn=document.createElement('button');
+          editBtn.style.cssText='font-size:11px;padding:3px 8px;border-radius:4px;border:1px solid var(--border2);background:none;color:var(--text2);cursor:pointer;flex-shrink:0;margin-left:8px;';
+          editBtn.textContent='แก้ไข';
+          editBtn.onclick=(function(k2,code2,qty2,unit2,name2){ return function(e){ e.stopPropagation(); editJobItem(k2,code2,qty2,unit2,name2); }; })(key,item.code,item.qty,item.unit,item.name);
+          editRow.appendChild(editName); editRow.appendChild(editBtn);
+          detail.appendChild(editRow);
+        });
+
+        // ปุ่ม Delete
+        var delBtn=document.createElement('button');
+        delBtn.style.cssText='margin-top:8px;width:100%;padding:8px;border-radius:6px;border:1px solid var(--danger);background:rgba(239,68,68,0.1);color:var(--danger);font-size:12px;cursor:pointer;';
+        delBtn.textContent='🗑️ ลบใบงานนี้';
+        delBtn.onclick=(function(k){ return function(e){ e.stopPropagation(); deleteJob(k); }; })(key);
+        detail.appendChild(delBtn);
+      }
+
       var printBtn=document.createElement('button');
       printBtn.className='btn-print';
       printBtn.textContent='🖨️ พิมพ์ใบงาน PDF';
@@ -997,14 +1035,17 @@ function renderDash() {
   var selMn=parseInt(month.split('-')[1]);
   var filtered=logs.filter(function(l){
     var ts=String(l.timestamp||'');
-    if (ts.indexOf('/')>0) {
-      var p=ts.split(' ')[0].split('/');
-      if (p.length===3) {
-        var yr=parseInt(p[2]); if(yr>2500) yr=yr-543;
-        return yr===selYr && parseInt(p[1])===selMn;
-      }
+    var yr=-1, mn=-1;
+    if (ts.indexOf('T')>0) {
+      // ISO format: 2569-05-07T... (ปี พ.ศ.)
+      var p=ts.split('T')[0].split('-');
+      if (p.length===3) { yr=parseInt(p[0]); if(yr>2500) yr=yr-543; mn=parseInt(p[1]); }
+    } else if (ts.indexOf('/')>0) {
+      // dd/MM/yyyy format
+      var p2=ts.split(' ')[0].split('/');
+      if (p2.length===3) { yr=parseInt(p2[2]); if(yr>2500) yr=yr-543; mn=parseInt(p2[1]); }
     }
-    return false;
+    return yr===selYr && mn===selMn;
   });
   var jobs=filtered.filter(function(l){return l.type==='งานแก้ไฟ';});
   var withdraws=filtered.filter(function(l){return l.type==='เบิกขึ้นรถ';});
@@ -1031,7 +1072,13 @@ function renderDash() {
   });
 
   var dayMap={};
-  jobs.forEach(function(l){var day=String(l.timestamp).split(' ')[0];if(!dayMap[day])dayMap[day]=0;dayMap[day]++;});
+  jobs.forEach(function(l){
+    var ts=String(l.timestamp||'');
+    var day=ts;
+    if(ts.indexOf('T')>0) day=fmtTime(ts).split(' ')[0];
+    else if(ts.indexOf('/')>0) day=ts.split(' ')[0];
+    if(!dayMap[day])dayMap[day]=0;dayMap[day]++;
+  });
   var days=Object.keys(dayMap).sort();
   var maxCnt=days.reduce(function(m,d){return Math.max(m,dayMap[d]);},0)||1;
   var dailyEl=document.getElementById('d-daily');
@@ -1050,6 +1097,57 @@ function renderDash() {
     dDiv.appendChild(row); dDiv.appendChild(bar);
     dailyEl.appendChild(dDiv);
   });
+}
+
+// DELETE JOB
+function deleteJob(key) {
+  var g = _jobStore[key];
+  if (!g) return;
+  var jobId = key.indexOf('JOB-')===0 ? key : '';
+  if (!jobId) { showMsg('ลบได้เฉพาะใบงานแก้ไฟเท่านั้น', false); return; }
+  // ยืนยันชั้นที่ 1
+  showConfirm('ต้องการลบใบงานนี้ใช่ไหม?',
+    'จุด: <b>'+g.location+'</b><br>วันที่: <b>'+fmtTime(g.timestamp)+'</b><br><br>ของทุกรายการจะกลับไปอยู่บนรถเหมือนเดิม',
+    function(){
+      // ยืนยันชั้นที่ 2
+      showConfirm('⚠️ ยืนยันอีกครั้ง',
+        'การลบไม่สามารถย้อนกลับได้!<br><br>กด <b>ยืนยัน</b> เพื่อลบใบงานนี้',
+        function(){
+          showMsg('กำลังลบใบงาน...', 'info');
+          apiPost({action:'deleteJob', jobId:jobId}, function(err,res){
+            if (err||!res.success) { showMsg('เกิดข้อผิดพลาด: '+(res&&res.error||''), false); return; }
+            // อัปเดต tr ในหน้าจอ
+            g.items.forEach(function(item){
+              var t=tr.find(function(i){return i.code===item.code;}); 
+              if(t) t.qty=Number(t.qty)+Number(item.qty);
+            });
+            showMsg('ลบใบงานสำเร็จ ของกลับรถแล้ว', true);
+            renderReport();
+          });
+        }
+      );
+    }
+  );
+}
+
+// EDIT JOB ITEM
+function editJobItem(key, code, oldQty, unit, name) {
+  var newQty = parseInt(prompt('แก้ไขจำนวน "'+name+'"\nปัจจุบัน: '+oldQty+' '+unitTH(unit)+'\n\nระบุจำนวนใหม่:', oldQty));
+  if (isNaN(newQty) || newQty < 0) { showMsg('ยกเลิกการแก้ไข', false); return; }
+  if (newQty === oldQty) { showMsg('จำนวนไม่เปลี่ยนแปลง', false); return; }
+  var diff = newQty - oldQty;
+  var diffTxt = diff > 0 ? '(เพิ่ม +'+diff+' ตัดจากรถ)' : '(ลด '+diff+' คืนกลับรถ)';
+  showConfirm('ยืนยันการแก้ไข',
+    'รายการ: <b>'+name+'</b><br>เดิม: <b>'+oldQty+' '+unitTH(unit)+'</b><br>ใหม่: <b>'+newQty+' '+unitTH(unit)+'</b><br>'+diffTxt,
+    function(){
+      apiPost({action:'updateJobItem', jobId:key, code:code, newQty:newQty}, function(err,res){
+        if (err||!res.success) { showMsg('เกิดข้อผิดพลาด: '+(res&&res.error||''), false); return; }
+        var t=tr.find(function(i){return i.code===code;}); if(t) t.qty=res.truckQty;
+        showMsg('แก้ไขสำเร็จ', true);
+        renderReport();
+      });
+    }
+  );
 }
 
 // INIT
