@@ -125,11 +125,11 @@ select.form-input option{background:var(--bg2);}
 <div class="header">
   <div>
     <div class="header-title">คลังแก้ไฟ กฟส.คำชะอี</div>
-    <div class="header-sub">PEA INVENTORY v1.6</div>
+    <div class="header-sub">PEA INVENTORY v1.7</div>
   </div>
   <div class="header-right">
     <button class="sync-btn" onclick="syncAll()">↻ Sync</button>
-    <div class="header-badge">v1.6</div>
+    <div class="header-badge">v1.7</div>
   </div>
 </div>
 
@@ -450,7 +450,7 @@ function buildCatHtml(items,openMap,src,showStatus){
         html+='<div class="item-right">';
         if(showStatus)html+=badge(Number(item.qty));
         else html+='<span class="badge '+(Number(item.qty)>0?'badge-info':'badge-empty')+'">'+(Number(item.qty)>0?item.qty+' '+unitTH(item.unit):'ว่าง')+'</span>';
-        if(src==='wh')html+='<button class="btn-edit" onclick="openEdit(\''+item.code+'\')">แก้ไข</button>';
+        if(src==='wh'){var idx2=wh.indexOf(item);html+='<button class="btn-edit" onclick="openEditIdx('+idx2+')">แก้ไข</button>';}
         html+='</div></div>';
       });
     }
@@ -475,6 +475,18 @@ function renderTr(){
 }
 
 // ── EDIT ──
+function openEditIdx(idx){
+  if(idx<0||idx>=wh.length)return;
+  var item=wh[idx];
+  editCode=item.code;
+  document.getElementById('editTitle').textContent='แก้ไข: '+item.name;
+  document.getElementById('editSub').textContent=item.code+' | '+item.cat;
+  document.getElementById('eq').value=item.qty;
+  document.getElementById('eu').value=item.unit;
+  document.getElementById('addForm').style.display='none';
+  document.getElementById('editForm').style.display='block';
+  document.getElementById('editForm').scrollIntoView({behavior:'smooth',block:'nearest'});
+}
 function openEdit(code){
   var item=wh.find(function(i){return i.code===code;});
   if(!item)return;
