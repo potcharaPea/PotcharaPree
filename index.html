@@ -271,7 +271,19 @@ select.fi option{background:var(--bg2);}
 <!-- Dashboard -->
 <div id="pd" style="display:none;">
   <div style="font-size:15px;font-weight:600;margin-bottom:14px;">📊 Dashboard สรุปรายเดือน</div>
-  <div class="fg"><label class="fl">เลือกเดือน</label><input id="dash-month" class="fi" type="month" onchange="renderDash()"></div>
+  <div class="fg"><label class="fl">เลือกเดือน</label>
+  <div style="display:flex;gap:8px;">
+    <select id="dash-mn" class="fi" onchange="renderDash()" style="flex:1;">
+      <option value="1">มกราคม</option><option value="2">กุมภาพันธ์</option>
+      <option value="3">มีนาคม</option><option value="4">เมษายน</option>
+      <option value="5">พฤษภาคม</option><option value="6">มิถุนายน</option>
+      <option value="7">กรกฎาคม</option><option value="8">สิงหาคม</option>
+      <option value="9">กันยายน</option><option value="10">ตุลาคม</option>
+      <option value="11">พฤศจิกายน</option><option value="12">ธันวาคม</option>
+    </select>
+    <select id="dash-yr" class="fi" onchange="renderDash()" style="width:100px;"></select>
+  </div>
+</div>
   <div class="metrics m2" style="margin-top:10px;">
     <div class="metric"><div class="metric-lbl">งานแก้ไฟ</div><div class="metric-val c-warn" id="d-jobs">—</div></div>
     <div class="metric"><div class="metric-lbl">รายการเบิก</div><div class="metric-val c-info" id="d-withdraws">—</div></div>
@@ -1036,10 +1048,9 @@ function printJob(key) {
 
 // DASHBOARD
 function renderDash() {
-  var month=document.getElementById('dash-month').value;
-  if (!month) return;
-  var selYr=parseInt(month.split('-')[0]);
-  var selMn=parseInt(month.split('-')[1]);
+  var selYr=parseInt(document.getElementById('dash-yr').value||'0');
+  var selMn=parseInt(document.getElementById('dash-mn').value||'0');
+  if (!selYr||!selMn) return;
   var filtered=logs.filter(function(l){
     var ts=String(l.timestamp||'');
     var yr=-1, mn=-1;
@@ -1159,7 +1170,11 @@ function editJobItem(key, code, oldQty, unit, name) {
 
 // INIT
 var now=new Date();
-document.getElementById('dash-month').value=(now.getFullYear()+543)+'-'+String(now.getMonth()+1).padStart(2,'0');
+// สร้างตัวเลือกปี พ.ศ. ย้อนหลัง 3 ปี
+var yrEl=document.getElementById('dash-yr');
+var curYrTH=now.getFullYear()+543;
+for(var yi=curYrTH;yi>=curYrTH-2;yi--){var op=document.createElement('option');op.value=yi;op.textContent=yi;yrEl.appendChild(op);}
+document.getElementById('dash-mn').value=now.getMonth()+1;
 document.getElementById('acat').innerHTML=CATS.map(function(c){return '<option value="'+c+'">'+c+'</option>';}).join('');
 syncAll();
 </script>
