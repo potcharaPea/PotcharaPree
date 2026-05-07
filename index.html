@@ -220,6 +220,34 @@ select.form-input option{background:var(--bg2);}
   </div>
 
   <!-- งานแก้ไฟ -->
+<!-- รถแก้ไฟ -->
+<div id="pt" style="display:none;">
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;">
+    <div class="metric"><div class="metric-label">บนรถทั้งหมด</div><div class="metric-value info" id="tc">—</div></div>
+    <div class="metric"><div class="metric-label">รายการที่มีของ</div><div class="metric-value ok" id="tc2">—</div></div>
+  </div>
+  <div class="search-box"><span class="search-icon">⌕</span><input id="tsearch" type="text" placeholder="ค้นหา..." oninput="renderTr()"></div>
+  <div id="trcatlist"><div class="loading"><div class="loading-spinner"></div><div>กำลังโหลด...</div></div></div>
+</div>
+
+<!-- คืนของ -->
+<div id="pk" style="display:none;">
+  <div class="card">
+    <div class="card-title">คืนของจากรถกลับคลัง</div>
+    <div class="form-group"><label class="form-label">หมวดหมู่</label><select id="kcat" class="form-input" onchange="filterK()"></select></div>
+    <div class="form-group">
+      <label class="form-label">ค้นหา</label>
+      <input id="ksearch" class="form-input" type="text" placeholder="พิมพ์ชื่อหรือรหัส..." oninput="filterK()" style="margin-bottom:6px;">
+      <select id="ki" class="form-input"></select>
+    </div>
+    <div class="form-group"><label class="form-label">จำนวนที่คืน</label><input id="kq" class="form-input" type="number" min="1" value="1"></div>
+    <div class="form-group"><label class="form-label">กะ</label>
+      <select id="ks" class="form-input"><option>กะเช้า</option><option>กะบ่าย</option><option>กะดึก</option></select>
+    </div>
+    <button class="btn-submit" style="background:#10b981;border:none;" onclick="doReturn()">คืนของกลับคลัง</button>
+  </div>
+</div>
+
 <div id="pu" style="display:none;">
   <div class="card">
     <div class="card-title">บันทึกงานแก้ไฟ</div>
@@ -257,9 +285,16 @@ select.form-input option{background:var(--bg2);}
 
 <!-- Report -->
 <div id="pr" style="display:none;">
-  <div class="metrics">
-    <div class="metric"><div class="metric-label">เบิกขึ้นรถ</div><div class="metric-value info" id="rc1">—</div></div>
-    <div class="metric"><div class="metric-label">งานแก้ไฟ</div><div class="metric-value warn" id="rc2">—</div></div>
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px;">
+    <div class="metric" id="rf-all" onclick="filterReport('all')" style="cursor:pointer;border-color:var(--accent);">
+      <div class="metric-label">ทั้งหมด</div><div class="metric-value ok" id="rc0">—</div>
+    </div>
+    <div class="metric" id="rf-w" onclick="filterReport('เบิกขึ้นรถ')" style="cursor:pointer;">
+      <div class="metric-label">เบิกขึ้นรถ</div><div class="metric-value info" id="rc1">—</div>
+    </div>
+    <div class="metric" id="rf-u" onclick="filterReport('งานแก้ไฟ')" style="cursor:pointer;">
+      <div class="metric-label">งานแก้ไฟ</div><div class="metric-value warn" id="rc2">—</div>
+    </div>
   </div>
   <div id="rlist"><div class="loading"><div class="loading-spinner"></div><div>กำลังโหลด...</div></div></div>
 </div>
