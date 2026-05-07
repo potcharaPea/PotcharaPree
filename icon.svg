@@ -1,0 +1,15 @@
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+<rect width="512" height="512" rx="100" fill="#0f1117"/>
+<rect x="14" y="14" width="484" height="484" rx="88" fill="#161b27"/>
+<circle cx="256" cy="230" r="175" fill="#1e2535"/>
+<polygon points="280,80 195,240 260,240 235,390 370,210 300,210" fill="#f59e0b"/>
+<polygon points="274,86 190,244 255,244 230,388 365,214 296,214" fill="#fbbf24" opacity="0.35"/>
+<line x1="168" y1="128" x2="133" y2="93" stroke="#f59e0b" stroke-width="6" stroke-linecap="round" opacity="0.6"/>
+<line x1="150" y1="185" x2="107" y2="178" stroke="#f59e0b" stroke-width="5" stroke-linecap="round" opacity="0.5"/>
+<line x1="160" y1="232" x2="114" y2="244" stroke="#f59e0b" stroke-width="4" stroke-linecap="round" opacity="0.4"/>
+<line x1="344" y1="128" x2="379" y2="93" stroke="#f59e0b" stroke-width="6" stroke-linecap="round" opacity="0.6"/>
+<line x1="362" y1="185" x2="405" y2="178" stroke="#f59e0b" stroke-width="5" stroke-linecap="round" opacity="0.5"/>
+<line x1="352" y1="232" x2="398" y2="244" stroke="#f59e0b" stroke-width="4" stroke-linecap="round" opacity="0.4"/>
+<rect x="156" y="408" width="200" height="52" rx="12" fill="#f59e0b"/>
+<text x="256" y="445" text-anchor="middle" font-family="monospace" font-size="28" font-weight="700" fill="#0f1117" letter-spacing="6">KCE</text>
+</svg>
