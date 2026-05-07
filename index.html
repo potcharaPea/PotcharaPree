@@ -127,11 +127,11 @@ select.fi option{background:var(--bg2);}
 <div class="hdr">
   <div>
     <div class="hdr-title">คลังแก้ไฟ กฟส.คำชะอี</div>
-    <div class="hdr-sub">PEA INVENTORY v0.9</div>
+    <div class="hdr-sub">PEA INVENTORY v0.10</div>
   </div>
   <div style="display:flex;align-items:center;gap:8px;">
     <button class="sync-btn" onclick="syncAll()">↻ Sync</button>
-    <div class="ver">v0.9</div>
+    <div class="ver">v0.10</div>
   </div>
 </div>
 
@@ -844,6 +844,9 @@ function renderRptList() {
     if (ts.indexOf('/')>0) {
       var p=ts.split(' ')[0].split('/');
       if (p.length===3) month=MN[parseInt(p[1])-1]+' '+p[2];
+    } else if (ts.indexOf('-')>0) {
+      var p2=ts.split('T')[0].split('-');
+      if (p2.length===3) { var MN2=['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.']; month=MN2[parseInt(p2[1])-1]+' '+(parseInt(p2[0])+543); }
     }
     if (!monthMap[month]) { monthMap[month]=[]; monthOrder.push(month); }
     monthMap[month].push(key);
@@ -996,7 +999,10 @@ function renderDash() {
     var ts=String(l.timestamp||'');
     if (ts.indexOf('/')>0) {
       var p=ts.split(' ')[0].split('/');
-      if (p.length===3) return parseInt(p[2])-543===selYr && parseInt(p[1])===selMn;
+      if (p.length===3) {
+        var yr=parseInt(p[2]); if(yr>2500) yr=yr-543;
+        return yr===selYr && parseInt(p[1])===selMn;
+      }
     }
     return false;
   });
