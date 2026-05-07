@@ -348,19 +348,26 @@ function unitTH(u) {
 function fmtTime(raw) {
   if (!raw) return '-';
   var s = String(raw);
+  // format: dd/MM/yyyy HH:mm (ใหม่)
+  if (s.indexOf('/') > 0) {
+    return s; // แสดงตรงๆ ได้เลย ถูกต้องอยู่แล้ว
+  }
+  // ISO format: 2026-05-07T11:36:00.000Z
   if (s.indexOf('T') > 0) {
-    // ISO format with พ.ศ. year: 2569-05-07T03:37:10.000Z
     var p = s.split('T');
     var dateParts = p[0].split('-');
-    var timeParts = p[1] ? p[1].substring(0,5).split(':') : ['00','00'];
-    if (dateParts.length===3) {
-      var yr = parseInt(dateParts[0]);
-      var mon = dateParts[1];
-      var day = dateParts[2];
-      // ถ้าปีเป็น ค.ศ. ให้บวก 543
-      if (yr < 2500) yr = yr + 543;
-      return day+'/'+mon+'/'+yr+' '+timeParts[0]+':'+timeParts[1];
-    }
+    var timeStr = p[1] ? p[1].substring(0,5) : '00:00';
+    // แปลงเป็น Bangkok time (UTC+7)
+    var dt = new Date(s);
+    var offset = 7 * 60 * 60 * 1000;
+    var thai = new Date(dt.getTime() + offset);
+    var dd  = String(thai.getUTCDate()).padStart(2,'0');
+    var mm  = String(thai.getUTCMonth()+1).padStart(2,'0');
+    var yr  = thai.getUTCFullYear();
+    if (yr < 2500) yr += 543;
+    var hh  = String(thai.getUTCHours()).padStart(2,'0');
+    var min = String(thai.getUTCMinutes()).padStart(2,'0');
+    return dd+'/'+mm+'/'+yr+' '+hh+':'+min;
   }
   return s;
 }
