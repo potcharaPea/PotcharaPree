@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>คลังแก้ไฟ กฟส.คำชะอี v1</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --bg:#0f1117;--bg2:#161b27;--bg3:#1e2535;
+  --border:#2a3347;--border2:#3a4a63;
+  --text:#e8edf5;--text2:#8a9ab8;--text3:#4a5a78;
+  --accent:#f59e0b;--accent2:#d97706;
+  --success:#10b981;--danger:#ef4444;--warning:#f59e0b;--info:#3b82f6;
+}
+body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans Thai',sans-serif;min-height:100vh;font-size:14px;}
+.app{max-width:480px;margin:0 auto;min-height:100vh;display:flex;flex-direction:column;}
+
+.header{background:var(--bg2);border-bottom:1px solid var(--border);padding:12px 16px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;}
+.header-title{font-size:15px;font-weight:600;}
+.header-sub{font-size:11px;color:var(--text2);font-family:'IBM Plex Mono',monospace;}
+.header-right{display:flex;align-items:center;gap:8px;}
+.header-badge{background:var(--accent);color:#000;font-size:10px;font-weight:600;padding:3px 8px;border-radius:4px;font-family:'IBM Plex Mono',monospace;}
+.sync-btn{background:none;border:1px solid var(--border2);color:var(--text2);font-size:11px;padding:4px 10px;border-radius:4px;cursor:pointer;font-family:'IBM Plex Sans Thai',sans-serif;}
+.sync-btn:active{background:var(--bg3);}
+
+.nav{background:var(--bg2);border-bottom:1px solid var(--border);display:flex;overflow-x:auto;scrollbar-width:none;}
+.nav::-webkit-scrollbar{display:none;}
+.nav-btn{flex-shrink:0;padding:12px 14px;font-size:12px;font-weight:500;color:var(--text2);border:none;background:none;cursor:pointer;border-bottom:2px solid transparent;transition:all 0.2s;font-family:'IBM Plex Sans Thai',sans-serif;white-space:nowrap;}
+.nav-btn.active{color:var(--accent);border-bottom-color:var(--accent);}
+
+.content{flex:1;padding:16px;}
+
+.subtabs{display:flex;gap:6px;margin-bottom:14px;}
+.subtab{flex:1;padding:9px;border-radius:6px;border:1px solid var(--border);background:none;color:var(--text2);font-size:13px;font-weight:500;cursor:pointer;font-family:'IBM Plex Sans Thai',sans-serif;transition:all 0.2s;text-align:center;}
+.subtab.active{border-color:var(--accent);color:var(--accent);background:rgba(245,158,11,0.08);}
+
+.metrics{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:14px;}
+.metric{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:14px;}
+.metric-label{font-size:11px;color:var(--text2);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.05em;font-family:'IBM Plex Mono',monospace;}
+.metric-value{font-size:24px;font-weight:600;font-family:'IBM Plex Mono',monospace;}
+.metric-value.ok{color:var(--success);}
+.metric-value.warn{color:var(--warning);}
+.metric-value.info{color:var(--info);}
+
+.search-box{position:relative;margin-bottom:12px;}
+.search-box input{width:100%;padding:10px 14px 10px 34px;background:var(--bg2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;font-family:'IBM Plex Sans Thai',sans-serif;outline:none;transition:border 0.2s;}
+.search-box input:focus{border-color:var(--border2);}
+.search-box input::placeholder{color:var(--text3);}
+.search-icon{position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--text3);font-size:15px;pointer-events:none;}
+
+.cat-block{background:var(--bg2);border:1px solid var(--border);border-radius:8px;overflow:hidden;margin-bottom:8px;}
+.cat-header{display:flex;justify-content:space-between;align-items:center;padding:11px 14px;cursor:pointer;transition:background 0.15s;user-select:none;}
+.cat-header:hover{background:var(--bg3);}
+.cat-header-left{display:flex;align-items:center;gap:7px;flex:1;min-width:0;}
+.cat-name{font-size:13px;font-weight:500;color:var(--text);}
+.cat-count{font-size:11px;color:var(--text2);font-family:'IBM Plex Mono',monospace;flex-shrink:0;}
+.cat-arrow{font-size:10px;color:var(--text3);transition:transform 0.2s;flex-shrink:0;}
+.cat-arrow.open{transform:rotate(180deg);}
+
+.item-row{display:flex;justify-content:space-between;align-items:center;padding:9px 14px;border-top:1px solid var(--border);}
+.item-left{flex:1;min-width:0;margin-right:8px;}
+.item-code{font-size:10px;color:var(--text3);font-family:'IBM Plex Mono',monospace;margin-bottom:2px;}
+.item-name{font-size:13px;color:var(--text);margin-bottom:2px;line-height:1.3;}
+.item-qty{font-size:12px;color:var(--text2);font-family:'IBM Plex Mono',monospace;}
+.item-right{display:flex;align-items:center;gap:6px;flex-shrink:0;}
+
+.badge{font-size:10px;padding:2px 7px;border-radius:4px;font-weight:500;font-family:'IBM Plex Mono',monospace;white-space:nowrap;}
+.badge-ok{background:rgba(16,185,129,0.15);color:var(--success);}
+.badge-low{background:rgba(245,158,11,0.15);color:var(--warning);}
+.badge-empty{background:rgba(239,68,68,0.15);color:var(--danger);}
+.badge-info{background:rgba(59,130,246,0.15);color:var(--info);}
+.badge-out{background:rgba(245,158,11,0.15);color:var(--warning);}
+
+.btn-edit{font-size:11px;padding:4px 10px;border-radius:4px;border:1px solid var(--border2);background:none;color:var(--text2);cursor:pointer;font-family:'IBM Plex Sans Thai',sans-serif;transition:all 0.15s;}
+.btn-edit:hover{border-color:var(--accent);color:var(--accent);}
+
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:14px;margin-bottom:10px;}
+.card-title{font-size:14px;font-weight:600;margin-bottom:14px;}
+.form-group{margin-bottom:10px;}
+.form-label{font-size:11px;color:var(--text2);margin-bottom:5px;display:block;text-transform:uppercase;letter-spacing:0.04em;font-family:'IBM Plex Mono',monospace;}
+.form-input{width:100%;padding:9px 12px;background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:13px;font-family:'IBM Plex Sans Thai',sans-serif;outline:none;transition:border 0.2s;}
+.form-input:focus{border-color:var(--accent);}
+.form-input::placeholder{color:var(--text3);}
+select.form-input option{background:var(--bg2);}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+
+.btn-primary{width:100%;padding:11px;border-radius:8px;border:1px solid var(--accent);background:rgba(245,158,11,0.1);color:var(--accent);font-size:14px;font-weight:500;cursor:pointer;font-family:'IBM Plex Sans Thai',sans-serif;transition:all 0.2s;margin-top:10px;}
+.btn-primary:hover{background:rgba(245,158,11,0.2);}
+.btn-submit{width:100%;padding:11px;border-radius:8px;border:none;background:var(--accent);color:#000;font-size:14px;font-weight:600;cursor:pointer;font-family:'IBM Plex Sans Thai',sans-serif;transition:background 0.2s;margin-top:4px;}
+.btn-submit:active{background:var(--accent2);}
+.btn-cancel{width:100%;padding:10px;border-radius:8px;border:1px solid var(--border2);background:none;color:var(--text2);font-size:14px;cursor:pointer;font-family:'IBM Plex Sans Thai',sans-serif;}
+.btn-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px;}
+
+.msg{display:none;padding:10px 14px;border-radius:6px;font-size:13px;margin-bottom:12px;border-left:3px solid;}
+.msg.ok{background:rgba(16,185,129,0.1);color:var(--success);border-color:var(--success);}
+.msg.err{background:rgba(239,68,68,0.1);color:var(--danger);border-color:var(--danger);}
+
+.toggle-section{display:none;}
+
+/* LOADING */
+.loading{text-align:center;padding:40px 16px;color:var(--text3);}
+.loading-spinner{display:inline-block;width:24px;height:24px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin 0.8s linear infinite;margin-bottom:10px;}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+.report-item{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:12px;margin-bottom:8px;}
+.report-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px;gap:8px;}
+.report-code{font-size:10px;color:var(--text3);font-family:'IBM Plex Mono',monospace;margin-bottom:2px;}
+.report-name{font-size:13px;font-weight:500;line-height:1.3;}
+.report-detail{font-size:12px;color:var(--text2);margin-top:4px;font-family:'IBM Plex Mono',monospace;}
+.report-time{font-size:10px;color:var(--text3);margin-top:3px;font-family:'IBM Plex Mono',monospace;}
+.empty{text-align:center;padding:40px 16px;color:var(--text3);font-size:13px;}
+</style>
+</head>
+<body>
+<div class="app">
+
+<div class="header">
+  <div>
+    <div class="header-title">คลังแก้ไฟ กฟส.คำชะอี</div>
+    <div class="header-sub">PEA INVENTORY v1.0</div>
+  </div>
+  <div class="header-right">
+    <button class="sync-btn" onclick="syncAll()">↻ Sync</button>
+    <div class="header-badge">v1</div>
+  </div>
+</div>
+
+<div class="nav">
+  <button class="nav-btn active" onclick="nav('w',this)">คลัง / เบิกของ</button>
+  <button class="nav-btn" onclick="nav('t',this)">รถแก้ไฟ</button>
+  <button class="nav-btn" onclick="nav('u',this)">งานแก้ไฟ</button>
+  <button class="nav-btn" onclick="nav('r',this)">Report</button>
+</div>
+
+<div class="content">
+<div id="msg" class="msg"></div>
+
+<!-- คลัง / เบิกของ -->
+<div id="pw">
+  <div class="subtabs">
+    <button class="subtab active" onclick="subTab('wh',this)">คลังแก้ไฟ</button>
+    <button class="subtab" onclick="subTab('bk',this)">เบิกของ</button>
+  </div>
+
+  <div id="swh">
+    <div class="metrics">
+      <div class="metric"><div class="metric-label">รายการทั้งหมด</div><div class="metric-value ok" id="wc">—</div></div>
+      <div class="metric"><div class="metric-label">หมด/ใกล้หมด</div><div class="metric-value warn" id="lc">—</div></div>
+    </div>
+    <div class="search-box"><span class="search-icon">⌕</span><input id="wsearch" type="text" placeholder="ค้นหาชื่อหรือรหัสพัสดุ..." oninput="renderWh()"></div>
+    <div id="catlist"><div class="loading"><div class="loading-spinner"></div><div>กำลังโหลดข้อมูล...</div></div></div>
+    <button class="btn-primary" id="addBtn" onclick="toggleSec('addForm','+ เพิ่มอุปกรณ์ใหม่','ปิด')">+ เพิ่มอุปกรณ์ใหม่</button>
+    <div id="addForm" class="toggle-section" style="margin-top:10px;">
+      <div class="card">
+        <div class="card-title">เพิ่มอุปกรณ์ใหม่</div>
+        <div class="form-group"><label class="form-label">รหัสพัสดุ</label><input id="ac" class="form-input" type="text" placeholder="เช่น 1040020013"></div>
+        <div class="form-group"><label class="form-label">หมวดหมู่</label><select id="acat" class="form-input"></select></div>
+        <div class="form-group"><label class="form-label">ชื่ออุปกรณ์</label><input id="an" class="form-input" type="text" placeholder="ชื่ออุปกรณ์"></div>
+        <div class="form-row">
+          <div class="form-group"><label class="form-label">จำนวน</label><input id="aq" class="form-input" type="number" min="0" value="0"></div>
+          <div class="form-group"><label class="form-label">หน่วย</label><input id="au" class="form-input" type="text" placeholder="EA / M / KG"></div>
+        </div>
+        <div class="btn-grid">
+          <button class="btn-cancel" onclick="toggleSec('addForm','+ เพิ่มอุปกรณ์ใหม่','ปิด')">ยกเลิก</button>
+          <button class="btn-submit" onclick="addItem()">บันทึก</button>
+        </div>
+      </div>
+    </div>
+    <div id="editForm" class="toggle-section" style="margin-top:10px;">
+      <div class="card">
+        <div class="card-title" id="editTitle">แก้ไขรายการ</div>
+        <div style="font-size:11px;color:var(--text2);margin-bottom:12px;font-family:'IBM Plex Mono',monospace;" id="editSub"></div>
+        <div class="form-group"><label class="form-label">จำนวนใหม่</label><input id="eq" class="form-input" type="number" min="0"></div>
+        <div class="form-group"><label class="form-label">หน่วยใหม่</label><input id="eu" class="form-input" type="text"></div>
+        <div class="btn-grid">
+          <button class="btn-cancel" onclick="closeEdit()">ยกเลิก</button>
+          <button class="btn-submit" onclick="saveEdit()">บันทึก</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="sbk" style="display:none;">
+    <div class="card">
+      <div class="card-title">เบิกอุปกรณ์ขึ้นรถ</div>
+      <div class="form-group"><label class="form-label">หมวดหมู่</label><select id="bcat" class="form-input" onchange="filterBk()"></select></div>
+      <div class="form-group">
+        <label class="form-label">ค้นหา</label>
+        <input id="bsearch" class="form-input" type="text" placeholder="พิมพ์ชื่อหรือรหัส..." oninput="filterBk()" style="margin-bottom:6px;">
+        <select id="bi" class="form-input"></select>
+      </div>
+      <div class="form-group"><label class="form-label">จำนวน</label><input id="bq" class="form-input" type="number" min="1" value="1"></div>
+      <div class="form-group"><label class="form-label">กะ</label>
+        <select id="bs" class="form-input"><option>กะเช้า</option><option>กะบ่าย</option><option>กะดึก</option></select>
+      </div>
+      <button class="btn-submit" onclick="doWithdraw()">เบิกขึ้นรถ</button>
+    </div>
+  </div>
+</div>
+
+<!-- รถแก้ไฟ -->
+<div id="pt" style="display:none;">
+  <div class="metrics">
+    <div class="metric"><div class="metric-label">บนรถทั้งหมด</div><div class="metric-value info" id="tc">—</div></div>
+    <div class="metric"><div class="metric-label">รายการที่มีของ</div><div class="metric-value ok" id="tc2">—</div></div>
+  </div>
+  <div class="search-box"><span class="search-icon">⌕</span><input id="tsearch" type="text" placeholder="ค้นหา..." oninput="renderTr()"></div>
+  <div id="trcatlist"><div class="loading"><div class="loading-spinner"></div><div>กำลังโหลด...</div></div></div>
+</div>
+
+<!-- งานแก้ไฟ -->
+<div id="pu" style="display:none;">
+  <div class="card">
+    <div class="card-title">บันทึกงานแก้ไฟ</div>
+    <div class="form-group"><label class="form-label">หมวดหมู่</label><select id="ucat" class="form-input" onchange="filterU()"></select></div>
+    <div class="form-group">
+      <label class="form-label">ค้นหา</label>
+      <input id="usearch" class="form-input" type="text" placeholder="พิมพ์ชื่อหรือรหัส..." oninput="filterU()" style="margin-bottom:6px;">
+      <select id="ui" class="form-input"></select>
+    </div>
+    <div class="form-group"><label class="form-label">จำนวนที่ใช้</label><input id="uq" class="form-input" type="number" min="1" value="1"></div>
+    <div class="form-group"><label class="form-label">จุดที่แก้ไข</label><input id="ul" class="form-input" type="text" placeholder="เช่น ถ.คำชะอี บ้านเลขที่ 123"></div>
+    <div class="form-group"><label class="form-label">กะ</label>
+      <select id="us" class="form-input"><option>กะเช้า</option><option>กะบ่าย</option><option>กะดึก</option></select>
+    </div>
+    <button class="btn-submit" onclick="doUse()">บันทึกงานแก้ไฟ</button>
+  </div>
+</div>
+
+<!-- Report -->
+<div id="pr" style="display:none;">
+  <div class="metrics">
+    <div class="metric"><div class="metric-label">เบิกขึ้นรถ</div><div class="metric-value info" id="rc1">—</div></div>
+    <div class="metric"><div class="metric-label">งานแก้ไฟ</div><div class="metric-value warn" id="rc2">—</div></div>
+  </div>
+  <div id="rlist"><div class="loading"><div class="loading-spinner"></div><div>กำลังโหลด...</div></div></div>
+</div>
+
+</div>
+</div>
+
+<script>
+// ── CONFIG ──
+var API = 'https://script.google.com/macros/s/AKfycbz5wccUV5PtrWGwjYLWn8Waf1eBTFKrdpcyrZaorB5ypvHoEpFl38yZAQyC7T2IcnG-/exec';
+
+var cats=[
+  'สายไฟแรงสูง (AL / ACSR / SAC)',
+  'สายไฟแรงต่ำ (PVC / ลวด / เทป)',
+  'หลอดต่อสาย และหางปลา',
+  'คอนเนคเตอร์ และ Hotline Clamp',
+  'PREFORMED และอุปกรณ์ยึดสาย',
+  'ลูกถ้วยไฟฟ้า',
+  'ล่อฟ้า และดรอพเอาท์ฟิวส์',
+  'ฟิวส์แรงสูง (ฟิวส์ลิงค์)',
+  'ฟิวส์แรงต่ำ และสวิตช์',
+  'Pole line hardware'
+];
+
+var wh=[], tr=[], logs=[];
+var openWh={}, openTr={};
+cats.forEach(function(c){openWh[c]=false;openTr[c]=false;});
+var editCode='';
+var pages=['w','t','u','r'];
+var navBtns=document.querySelectorAll('.nav-btn');
+
+// ── API CALL ──
+function apiGet(action,cb){
+  fetch(API+'?action='+action)
+    .then(function(r){return r.json();})
+    .then(function(d){cb(null,d.data||[]);})
+    .catch(function(e){cb(e,null);});
+}
+
+function apiPost(payload,cb){
+  fetch(API,{
+    method:'POST',
+    body:JSON.stringify(payload)
+  })
+  .then(function(r){return r.json();})
+  .then(function(d){cb(null,d);})
+  .catch(function(e){cb(e,null);});
+}
+
+// ── SYNC ──
+function syncAll(){
+  showMsg('กำลัง sync ข้อมูล...','info');
+  apiGet('getStock',function(err,data){
+    if(err){showMsg('ไม่สามารถเชื่อมต่อได้ กรุณาลองใหม่',false);return;}
+    wh=data;
+    apiGet('getTruck',function(err2,data2){
+      tr=data2||[];
+      apiGet('getLogs',function(err3,data3){
+        logs=data3||[];
+        renderWh();renderTr();renderReport();
+        initSelects();
+        showMsg('Sync สำเร็จ! อัปเดตข้อมูลล่าสุดแล้ว',true);
+      });
+    });
+  });
+}
+
+// ── NAV ──
+function nav(p,el){
+  pages.forEach(function(x){document.getElementById('p'+x).style.display='none';});
+  navBtns.forEach(function(b){b.classList.remove('active');});
+  document.getElementById('p'+p).style.display='block';
+  el.classList.add('active');
+  if(p==='t')renderTr();
+  if(p==='u'){initUCat();filterU();}
+  if(p==='r')renderReport();
+}
+
+function subTab(id,el){
+  document.getElementById('swh').style.display='none';
+  document.getElementById('sbk').style.display='none';
+  document.querySelectorAll('.subtab').forEach(function(b){b.classList.remove('active');});
+  document.getElementById('s'+id).style.display='block';
+  el.classList.add('active');
+  if(id==='bk'){initBkCat();filterBk();}
+}
+
+function toggleSec(id,labelOn,labelOff){
+  var el=document.getElementById(id);
+  var open=el.style.display==='none'||el.style.display==='';
+  el.style.display=open?'block':'none';
+  document.getElementById('addBtn').textContent=open?labelOff:labelOn;
+  if(open)document.getElementById('editForm').style.display='none';
+}
+
+// ── BADGE ──
+function badge(qty){
+  if(qty<=0)return '<span class="badge badge-empty">หมด</span>';
+  if(qty<=3)return '<span class="badge badge-low">ใกล้หมด</span>';
+  return '<span class="badge badge-ok">ปกติ</span>';
+}
+
+// ── ACCORDION ──
+function toggleCat(c,src){
+  if(src==='wh')openWh[c]=!openWh[c];
+  else openTr[c]=!openTr[c];
+  if(src==='wh')renderWh();else renderTr();
+}
+
+function buildCatHtml(items,openMap,src,showStatus){
+  var key=src==='wh'?(document.getElementById('wsearch').value||'').toLowerCase()
+    :(document.getElementById('tsearch')?document.getElementById('tsearch').value.toLowerCase():'');
+  var html='';
+  cats.forEach(function(c){
+    var rows=items.filter(function(i){
+      return i.cat===c&&(!key||(String(i.name).toLowerCase().includes(key)||String(i.code).includes(key)));
+    });
+    if(!rows.length)return;
+    var isOpen=openMap[c];
+    var low=rows.filter(function(i){return Number(i.qty)<=3;}).length;
+    var sc=c.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+    html+='<div class="cat-block"><div class="cat-header" onclick="toggleCat(\''+sc+'\',\''+src+'\')">';
+    html+='<div class="cat-header-left"><span class="cat-name">'+c+'</span><span class="cat-count">('+rows.length+')</span>';
+    if(low&&showStatus)html+='<span class="badge badge-low">'+low+' รายการ</span>';
+    html+='</div><span class="cat-arrow'+(isOpen?' open':'')+'">▼</span></div>';
+    if(isOpen){
+      rows.forEach(function(item){
+        html+='<div class="item-row"><div class="item-left">';
+        html+='<div class="item-code">'+item.code+'</div>';
+        html+='<div class="item-name">'+item.name+'</div>';
+        html+='<div class="item-qty">'+item.qty+' '+item.unit+'</div></div>';
+        html+='<div class="item-right">';
+        if(showStatus)html+=badge(Number(item.qty));
+        else html+='<span class="badge '+(Number(item.qty)>0?'badge-info':'badge-empty')+'">'+(Number(item.qty)>0?item.qty+' '+item.unit:'ว่าง')+'</span>';
+        if(src==='wh')html+='<button class="btn-edit" onclick="openEdit(\''+item.code+'\')">แก้ไข</button>';
+        html+='</div></div>';
+      });
+    }
+    html+='</div>';
+  });
+  return html||'<div class="empty">ไม่พบรายการ</div>';
+}
+
+function renderWh(){
+  document.getElementById('catlist').innerHTML=wh.length?buildCatHtml(wh,openWh,'wh',true):'<div class="empty">ยังไม่มีข้อมูล กด Sync ก่อนครับ</div>';
+  document.getElementById('wc').textContent=wh.length;
+  document.getElementById('lc').textContent=wh.filter(function(i){return Number(i.qty)<=3;}).length;
+}
+
+function renderTr(){
+  var total=tr.reduce(function(s,i){return s+Number(i.qty);},0);
+  var has=tr.filter(function(i){return Number(i.qty)>0;}).length;
+  document.getElementById('tc').textContent=total;
+  document.getElementById('tc2').textContent=has;
+  document.getElementById('trcatlist').innerHTML=tr.length?buildCatHtml(tr,openTr,'tr',false):'<div class="empty">ยังไม่มีข้อมูล กด Sync ก่อนครับ</div>';
+}
+
+// ── EDIT ──
+function openEdit(code){
+  var item=wh.find(function(i){return i.code===code;});
+  if(!item)return;
+  editCode=code;
+  document.getElementById('editTitle').textContent='แก้ไข: '+item.name;
+  document.getElementById('editSub').textContent=item.code+' | '+item.cat;
+  document.getElementById('eq').value=item.qty;
+  document.getElementById('eu').value=item.unit;
+  document.getElementById('addForm').style.display='none';
+  document.getElementById('editForm').style.display='block';
+  document.getElementById('editForm').scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+function closeEdit(){document.getElementById('editForm').style.display='none';editCode='';}
+function saveEdit(){
+  if(!editCode)return;
+  var qty=parseInt(document.getElementById('eq').value)||0;
+  var unit=document.getElementById('eu').value.trim();
+  if(!unit){showMsg('กรุณาระบุหน่วย',false);return;}
+  var item=wh.find(function(i){return i.code===editCode;});
+  showMsg('กำลังบันทึก...',true);
+  apiPost({action:'updateStock',code:editCode,name:item.name,qty:qty,unit:unit},function(err,res){
+    if(err||res.error){showMsg('เกิดข้อผิดพลาด: '+(res&&res.error||''),false);return;}
+    item.qty=qty;item.unit=unit;
+    renderWh();closeEdit();showMsg('แก้ไข "'+item.name+'" สำเร็จ',true);
+  });
+}
+
+// ── ADD ──
+function addItem(){
+  var code=document.getElementById('ac').value.trim();
+  var name=document.getElementById('an').value.trim();
+  var qty=parseInt(document.getElementById('aq').value)||0;
+  var unit=document.getElementById('au').value.trim();
+  var cat=document.getElementById('acat').value;
+  if(!name){showMsg('กรุณาระบุชื่ออุปกรณ์',false);return;}
+  if(!unit){showMsg('กรุณาระบุหน่วย',false);return;}
+  showMsg('กำลังบันทึก...',true);
+  apiPost({action:'addItem',code:code||('-'+Date.now()),name:name,qty:qty,unit:unit,cat:cat},function(err,res){
+    if(err||res.error){showMsg('เกิดข้อผิดพลาด: '+(res&&res.error||''),false);return;}
+    wh.push({code:code||('-'+Date.now()),name:name,qty:qty,unit:unit,cat:cat});
+    tr.push({code:code||('-'+Date.now()),name:name,qty:0,unit:unit,cat:cat});
+    renderWh();
+    document.getElementById('addForm').style.display='none';
+    document.getElementById('addBtn').textContent='+ เพิ่มอุปกรณ์ใหม่';
+    showMsg('เพิ่ม "'+name+'" สำเร็จ',true);
+  });
+}
+
+// ── GROUPED SELECT ──
+function buildGroupedOpts(arr,selCat,key){
+  var html='<option value="">-- เลือกรายการ --</option>';
+  cats.forEach(function(c){
+    var rows=arr.filter(function(i){
+      var mc=!selCat||selCat==='ทั้งหมด'||i.cat===selCat;
+      var mk=!key||(String(i.name).toLowerCase().includes(key)||String(i.code).includes(key));
+      return i.cat===c&&mc&&mk;
+    });
+    if(!rows.length)return;
+    html+='<optgroup label="'+c+'">';
+    rows.forEach(function(item,_){
+      var idx=arr.indexOf(item);
+      html+='<option value="'+idx+'">'+item.code+' — '+item.name+' ('+item.qty+' '+item.unit+')</option>';
+    });
+    html+='</optgroup>';
+  });
+  return html;
+}
+
+function initSelects(){
+  var catOpts='<option value="ทั้งหมด">ทั้งหมด</option>'+cats.map(function(c){return '<option value="'+c+'">'+c+'</option>';}).join('');
+  ['bcat','ucat'].forEach(function(id){document.getElementById(id).innerHTML=catOpts;});
+  document.getElementById('acat').innerHTML=cats.map(function(c){return '<option value="'+c+'">'+c+'</option>';}).join('');
+  filterBk();filterU();
+}
+function initBkCat(){
+  var catOpts='<option value="ทั้งหมด">ทั้งหมด</option>'+cats.map(function(c){return '<option value="'+c+'">'+c+'</option>';}).join('');
+  document.getElementById('bcat').innerHTML=catOpts;
+}
+function initUCat(){
+  var catOpts='<option value="ทั้งหมด">ทั้งหมด</option>'+cats.map(function(c){return '<option value="'+c+'">'+c+'</option>';}).join('');
+  document.getElementById('ucat').innerHTML=catOpts;
+}
+function filterBk(){
+  var cat=document.getElementById('bcat').value;
+  var key=(document.getElementById('bsearch').value||'').toLowerCase();
+  document.getElementById('bi').innerHTML=buildGroupedOpts(wh,cat,key);
+}
+function filterU(){
+  var cat=document.getElementById('ucat').value;
+  var key=(document.getElementById('usearch').value||'').toLowerCase();
+  document.getElementById('ui').innerHTML=buildGroupedOpts(tr,cat,key);
+}
+
+// ── WITHDRAW ──
+function doWithdraw(){
+  var idx=parseInt(document.getElementById('bi').value);
+  if(isNaN(idx)){showMsg('กรุณาเลือกรายการ',false);return;}
+  var qty=parseInt(document.getElementById('bq').value)||0;
+  var shift=document.getElementById('bs').value;
+  if(qty<=0){showMsg('กรุณาระบุจำนวน',false);return;}
+  var item=wh[idx];
+  if(Number(item.qty)<qty){showMsg('ของในคลังไม่พอ! เหลือ '+item.qty+' '+item.unit,false);return;}
+  showMsg('กำลังบันทึก...',true);
+  apiPost({action:'withdraw',code:item.code,name:item.name,qty:qty,unit:item.unit,shift:shift},function(err,res){
+    if(err||res.error){showMsg('เกิดข้อผิดพลาด: '+(res&&res.error||''),false);return;}
+    item.qty=res.stockQty;
+    var trItem=tr.find(function(i){return i.code===item.code;});
+    if(trItem)trItem.qty=res.truckQty;
+    renderWh();filterBk();
+    showMsg('เบิก '+item.name+' '+qty+' '+item.unit+' สำเร็จ',true);
+  });
+}
+
+// ── USE ──
+function doUse(){
+  var idx=parseInt(document.getElementById('ui').value);
+  if(isNaN(idx)){showMsg('กรุณาเลือกรายการ',false);return;}
+  var qty=parseInt(document.getElementById('uq').value)||0;
+  var loc=document.getElementById('ul').value||'ไม่ระบุ';
+  var shift=document.getElementById('us').value;
+  if(qty<=0){showMsg('กรุณาระบุจำนวน',false);return;}
+  var item=tr[idx];
+  if(Number(item.qty)<qty){showMsg('ของบนรถไม่พอ! เหลือ '+item.qty+' '+item.unit,false);return;}
+  showMsg('กำลังบันทึก...',true);
+  apiPost({action:'useItem',code:item.code,name:item.name,qty:qty,unit:item.unit,shift:shift,location:loc},function(err,res){
+    if(err||res.error){showMsg('เกิดข้อผิดพลาด: '+(res&&res.error||''),false);return;}
+    item.qty=res.truckQty;
+    filterU();
+    showMsg('บันทึกงานแก้ไฟ '+item.name+' '+qty+' '+item.unit+' สำเร็จ',true);
+  });
+}
+
+// ── REPORT ──
+function renderReport(){
+  apiGet('getLogs',function(err,data){
+    if(err){document.getElementById('rlist').innerHTML='<div class="empty">โหลดไม่ได้ กด Sync ครับ</div>';return;}
+    logs=data;
+    var w=logs.filter(function(l){return l.type==='เบิกขึ้นรถ';}).length;
+    var u=logs.filter(function(l){return l.type==='งานแก้ไฟ';}).length;
+    document.getElementById('rc1').textContent=w;
+    document.getElementById('rc2').textContent=u;
+    if(!logs.length){document.getElementById('rlist').innerHTML='<div class="empty">ยังไม่มีรายการ</div>';return;}
+    document.getElementById('rlist').innerHTML=[...logs].reverse().map(function(l){
+      var isW=l.type==='เบิกขึ้นรถ';
+      return '<div class="report-item">'
+        +'<div class="report-top"><div><div class="report-code">'+l.code+'</div><div class="report-name">'+l.name+'</div></div>'
+        +'<span class="badge '+(isW?'badge-info':'badge-out')+'">'+l.type+'</span></div>'
+        +'<div class="report-detail">'+l.qty+' '+l.unit+' | '+l.shift+' | '+l.location+'</div>'
+        +'<div class="report-time">'+l.timestamp+'</div></div>';
+    }).join('');
+  });
+}
+
+// ── MSG ──
+function showMsg(text,ok){
+  var el=document.getElementById('msg');
+  el.textContent=text;
+  if(ok==='info'){el.className='msg ok';}
+  else{el.className='msg '+(ok?'ok':'err');}
+  el.style.display='block';
+  if(ok!=='info')setTimeout(function(){el.style.display='none';},3000);
+}
+
+// ── INIT ──
+document.getElementById('acat').innerHTML=cats.map(function(c){return '<option value="'+c+'">'+c+'</option>';}).join('');
+syncAll();
+</script>
+</body>
+</html>
