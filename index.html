@@ -424,7 +424,7 @@ function syncAll(){
       tr=data2||[];
       apiGet('getLogs',function(err3,data3){
         logs=data3||[];
-        renderWh();renderTr();renderReport();
+        renderWh();if(document.getElementById("trcatlist"))renderTr();renderReport();
         initSelects();
         showMsg('Sync สำเร็จ! อัปเดตข้อมูลล่าสุดแล้ว',true);
       });
@@ -436,7 +436,7 @@ function syncAll(){
 function nav(p,el){
   pages.forEach(function(x){var el=document.getElementById('p'+x);if(el)el.style.display='none';});
   navBtns.forEach(function(b){b.classList.remove('active');});
-  document.getElementById('p'+p).style.display='block';
+  var pel=document.getElementById('p'+p); if(pel)pel.style.display='block';
   el.classList.add('active');
   if(p==='t')renderTr();
   if(p==='k'){initKCat();}
@@ -526,7 +526,7 @@ function renderTr(){
   var has=tr.filter(function(i){return Number(i.qty)>0;}).length;
   if(document.getElementById('tc'))document.getElementById('tc').textContent=total;
   if(document.getElementById('tc2'))document.getElementById('tc2').textContent=has;
-  document.getElementById('trcatlist').innerHTML=tr.length?buildCatHtml(tr,openTr,'tr',false):'<div class="empty">ยังไม่มีข้อมูล กด Sync ก่อนครับ</div>';
+  var trcEl=document.getElementById('trcatlist'); if(trcEl)trcEl.innerHTML=tr.length?buildCatHtml(tr,openTr,'tr',false):'<div class="empty">ยังไม่มีข้อมูล กด Sync ก่อนครับ</div>';
 }
 
 // ── EDIT ──
