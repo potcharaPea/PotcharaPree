@@ -132,11 +132,11 @@ select.form-input option{background:var(--bg2);}
 <div class="header">
   <div>
     <div class="header-title">คลังแก้ไฟ กฟส.คำชะอี</div>
-    <div class="header-sub">PEA INVENTORY v1.8</div>
+    <div class="header-sub">PEA INVENTORY v1.4</div>
   </div>
   <div class="header-right">
     <button class="sync-btn" onclick="syncAll()">↻ Sync</button>
-    <div class="header-badge">v1.8</div>
+    <div class="header-badge">v1.4</div>
   </div>
 </div>
 
@@ -219,34 +219,6 @@ select.form-input option{background:var(--bg2);}
     </div>
   </div>
 
-<!-- รถแก้ไฟ -->
-<div id="pt" style="display:none;">
-  <div class="metrics">
-    <div class="metric"><div class="metric-label">บนรถทั้งหมด</div><div class="metric-value info" id="tc">—</div></div>
-    <div class="metric"><div class="metric-label">รายการที่มีของ</div><div class="metric-value ok" id="tc2">—</div></div>
-  </div>
-  <div class="search-box"><span class="search-icon">⌕</span><input id="tsearch" type="text" placeholder="ค้นหา..." oninput="renderTr()"></div>
-  <div id="trcatlist"><div class="loading"><div class="loading-spinner"></div><div>กำลังโหลด...</div></div></div>
-</div>
-
-<!-- คืนของ -->
-<div id="pk" style="display:none;">
-  <div class="card">
-    <div class="card-title">คืนของจากรถกลับคลัง</div>
-    <div class="form-group"><label class="form-label">หมวดหมู่</label><select id="kcat" class="form-input" onchange="filterK()"></select></div>
-    <div class="form-group">
-      <label class="form-label">ค้นหา</label>
-      <input id="ksearch" class="form-input" type="text" placeholder="พิมพ์ชื่อหรือรหัส..." oninput="filterK()" style="margin-bottom:6px;">
-      <select id="ki" class="form-input"></select>
-    </div>
-    <div class="form-group"><label class="form-label">จำนวนที่คืน</label><input id="kq" class="form-input" type="number" min="1" value="1"></div>
-    <div class="form-group"><label class="form-label">กะ</label>
-      <select id="ks" class="form-input"><option>กะเช้า</option><option>กะบ่าย</option><option>กะดึก</option></select>
-    </div>
-    <button class="btn-submit" style="margin-top:4px;background:#10b981;border:none;" onclick="doReturn()">คืนของกลับคลัง</button>
-  </div>
-</div>
-
   <!-- งานแก้ไฟ -->
 <div id="pu" style="display:none;">
   <div class="card">
@@ -285,16 +257,9 @@ select.form-input option{background:var(--bg2);}
 
 <!-- Report -->
 <div id="pr" style="display:none;">
-  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px;">
-    <div class="metric" id="rf-all" onclick="filterReport('all')" style="cursor:pointer;border-color:var(--accent);">
-      <div class="metric-label">ทั้งหมด</div><div class="metric-value ok" id="rc0">—</div>
-    </div>
-    <div class="metric" id="rf-w" onclick="filterReport('เบิกขึ้นรถ')" style="cursor:pointer;">
-      <div class="metric-label">เบิกขึ้นรถ</div><div class="metric-value info" id="rc1">—</div>
-    </div>
-    <div class="metric" id="rf-u" onclick="filterReport('งานแก้ไฟ')" style="cursor:pointer;">
-      <div class="metric-label">งานแก้ไฟ</div><div class="metric-value warn" id="rc2">—</div>
-    </div>
+  <div class="metrics">
+    <div class="metric"><div class="metric-label">เบิกขึ้นรถ</div><div class="metric-value info" id="rc1">—</div></div>
+    <div class="metric"><div class="metric-label">งานแก้ไฟ</div><div class="metric-value warn" id="rc2">—</div></div>
   </div>
   <div id="rlist"><div class="loading"><div class="loading-spinner"></div><div>กำลังโหลด...</div></div></div>
 </div>
@@ -302,44 +267,30 @@ select.form-input option{background:var(--bg2);}
 </div>
 </div>
 
-<!-- Modal ยืนยัน -->
 <div class="modal-overlay" id="confirmModal">
   <div class="modal-box">
     <div class="modal-title" id="modalTitle">ยืนยันการบันทึก</div>
     <div class="modal-body" id="modalBody"></div>
     <div class="modal-btns">
       <button class="btn-cancel" onclick="closeModal()">ยกเลิก</button>
-      <button class="btn-submit" id="modalConfirmBtn" onclick="confirmAction()">ยืนยัน</button>
+      <button class="btn-submit" onclick="confirmAction()">ยืนยัน</button>
     </div>
   </div>
 </div>
 
 <script>
-// ── CONFIG ──
 // ── MODAL ──
-var _modalCallback = null;
-function showConfirm(title, body, cb){
-  document.getElementById('modalTitle').textContent = title;
-  document.getElementById('modalBody').innerHTML = body;
-  _modalCallback = cb;
+var _modalCb=null;
+function showConfirm(title,body,cb){
+  document.getElementById('modalTitle').textContent=title;
+  document.getElementById('modalBody').innerHTML=body;
+  _modalCb=cb;
   document.getElementById('confirmModal').classList.add('show');
 }
-function closeModal(){
-  document.getElementById('confirmModal').classList.remove('show');
-  _modalCallback = null;
-}
-function confirmAction(){
-  closeModal();
-  if(_modalCallback) _modalCallback();
-}
-function disableBtn(id){
-  var btn = document.getElementById(id);
-  if(btn){ btn.disabled = true; btn.style.opacity = '0.5'; }
-}
-function enableBtn(id){
-  var btn = document.getElementById(id);
-  if(btn){ btn.disabled = false; btn.style.opacity = '1'; }
-}
+function closeModal(){document.getElementById('confirmModal').classList.remove('show');_modalCb=null;}
+function confirmAction(){closeModal();if(_modalCb)_modalCb();}
+function disableBtn(id){var b=document.getElementById(id);if(b){b.disabled=true;b.style.opacity='0.5';}}
+function enableBtn(id){var b=document.getElementById(id);if(b){b.disabled=false;b.style.opacity='1';}}
 
 // ── CONFIG ──
 var API = 'https://script.google.com/macros/s/AKfycbypUY4jz2AA50GbVYtYlwRWeRw3YxuGv_78xIZJgEn3Y_ZAg1Ev1EeEkh4fzbQDfeie/exec';
@@ -378,6 +329,19 @@ function fmtTime(raw){
       var h=String(d.getHours()).padStart(2,'0');
       var m2=String(d.getMinutes()).padStart(2,'0');
       return day+'/'+mon+'/'+yr+' '+h+':'+m2;
+    }
+  }
+  return s;
+}
+
+// ── TIME FORMAT ──
+function fmtTime(raw){
+  if(!raw)return'-';
+  var s=String(raw);
+  if(s.indexOf('T')>0){
+    var d=new Date(s);
+    if(!isNaN(d)){
+      return String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0')+'/'+(d.getFullYear()+543)+' '+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
     }
   }
   return s;
@@ -424,7 +388,7 @@ function syncAll(){
       tr=data2||[];
       apiGet('getLogs',function(err3,data3){
         logs=data3||[];
-        renderWh();if(document.getElementById("trcatlist"))renderTr();renderReport();
+        renderWh();renderTr();renderReport();
         initSelects();
         showMsg('Sync สำเร็จ! อัปเดตข้อมูลล่าสุดแล้ว',true);
       });
@@ -434,9 +398,9 @@ function syncAll(){
 
 // ── NAV ──
 function nav(p,el){
-  pages.forEach(function(x){var el=document.getElementById('p'+x);if(el)el.style.display='none';});
+  pages.forEach(function(x){document.getElementById('p'+x).style.display='none';});
   navBtns.forEach(function(b){b.classList.remove('active');});
-  var pel=document.getElementById('p'+p); if(pel)pel.style.display='block';
+  document.getElementById('p'+p).style.display='block';
   el.classList.add('active');
   if(p==='t')renderTr();
   if(p==='k'){initKCat();}
@@ -505,7 +469,7 @@ function buildCatHtml(items,openMap,src,showStatus){
         html+='<div class="item-right">';
         if(showStatus)html+=badge(Number(item.qty));
         else html+='<span class="badge '+(Number(item.qty)>0?'badge-info':'badge-empty')+'">'+(Number(item.qty)>0?item.qty+' '+unitTH(item.unit):'ว่าง')+'</span>';
-        if(src==='wh'){var idx2=wh.indexOf(item);html+='<button class="btn-edit" onclick="openEditIdx('+idx2+')">แก้ไข</button>';}
+        if(src==='wh')html+='<button class="btn-edit" onclick="openEdit(\''+item.code+'\')">แก้ไข</button>';
         html+='</div></div>';
       });
     }
@@ -524,24 +488,12 @@ function renderWh(){
 function renderTr(){
   var total=tr.reduce(function(s,i){return s+Number(i.qty);},0);
   var has=tr.filter(function(i){return Number(i.qty)>0;}).length;
-  if(document.getElementById('tc'))document.getElementById('tc').textContent=total;
-  if(document.getElementById('tc2'))document.getElementById('tc2').textContent=has;
-  var trcEl=document.getElementById('trcatlist'); if(trcEl)trcEl.innerHTML=tr.length?buildCatHtml(tr,openTr,'tr',false):'<div class="empty">ยังไม่มีข้อมูล กด Sync ก่อนครับ</div>';
+  document.getElementById('tc').textContent=total;
+  document.getElementById('tc2').textContent=has;
+  document.getElementById('trcatlist').innerHTML=tr.length?buildCatHtml(tr,openTr,'tr',false):'<div class="empty">ยังไม่มีข้อมูล กด Sync ก่อนครับ</div>';
 }
 
 // ── EDIT ──
-function openEditIdx(idx){
-  if(idx<0||idx>=wh.length)return;
-  var item=wh[idx];
-  editCode=item.code;
-  document.getElementById('editTitle').textContent='แก้ไข: '+item.name;
-  document.getElementById('editSub').textContent=item.code+' | '+item.cat;
-  document.getElementById('eq').value=item.qty;
-  document.getElementById('eu').value=item.unit;
-  document.getElementById('addForm').style.display='none';
-  document.getElementById('editForm').style.display='block';
-  document.getElementById('editForm').scrollIntoView({behavior:'smooth',block:'nearest'});
-}
 function openEdit(code){
   var item=wh.find(function(i){return i.code===code;});
   if(!item)return;
@@ -624,12 +576,12 @@ function initUCat(){
   var catOpts='<option value="ทั้งหมด">ทั้งหมด</option>'+cats.map(function(c){return '<option value="'+c+'">'+c+'</option>';}).join('');
   document.getElementById('ucat').innerHTML=catOpts;
 }
+var bkItems=[];
 function filterBk(){
   var cat=document.getElementById('bcat').value;
   var key=(document.getElementById('bsearch').value||'').toLowerCase();
   document.getElementById('bi').innerHTML=buildGroupedOpts(wh,cat,key);
 }
-var bkItems=[];
 function addToBkList(){
   var idx=parseInt(document.getElementById('bi').value);
   if(isNaN(idx)){showMsg('กรุณาเลือกรายการ',false);return;}
@@ -653,73 +605,161 @@ function renderBkList(){
     +bkItems.map(function(item,i){
       return '<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 10px;background:var(--bg2);border:1px solid var(--border);border-radius:6px;margin-bottom:6px;">'
         +'<div><div style="font-size:10px;color:var(--text3);">'+item.code+'</div>'
-        +'<div style="font-size:13px;color:var(--text);">'+item.name+'</div>'
+        +'<div style="font-size:13px;">'+item.name+'</div>'
         +'<div style="font-size:12px;color:var(--accent);font-weight:500;">'+item.qty+' '+unitTH(item.unit)+'</div></div>'
         +'<button onclick="removeBk('+i+')" style="font-size:20px;background:none;border:none;color:var(--danger);cursor:pointer;padding:4px 8px;">x</button>'
         +'</div>';
     }).join('');
 }
 function removeBk(i){bkItems.splice(i,1);renderBkList();}
-function doWithdraw(){
-  if(!bkItems.length){showMsg('กรุณาเพิ่มรายการก่อน',false);return;}
-  var shift=document.getElementById('bs').value;
-  var summary=bkItems.map(function(i){return '• '+i.name+' '+i.qty+' '+unitTH(i.unit);}).join('<br>');
-  showConfirm('ยืนยันการเบิกของขึ้นรถ','กะ: '+shift+'<br><br>'+summary+'<br><br>รวม '+bkItems.length+' รายการ',function(){
-    _doWithdrawConfirmed(shift);
-  });
+var jobItems=[];
+
+function filterU(){
+  var cat=document.getElementById('ucat').value;
+  var key=(document.getElementById('usearch').value||'').toLowerCase();
+  document.getElementById('ui').innerHTML=buildGroupedOpts(tr,cat,key);
 }
-function _doWithdrawConfirmed(shift){
-  disableBtn('submitBkBtn');
-  var total=bkItems.length;
-  var done=0;
-  var errs=[];
-  bkItems.slice().forEach(function(item){
-    apiPost({action:'withdraw',code:item.code,name:item.name,qty:item.qty,unit:item.unit,shift:shift},function(err,res){
-      done++;
-      if(err||!res||!res.success){errs.push(item.name+': '+(res&&res.error||'error'));}
-      else{
-        var w=wh.find(function(i){return i.code===item.code;});
-        if(w)w.qty=res.stockQty;
-        var t=tr.find(function(i){return i.code===item.code;});
-        if(t)t.qty=res.truckQty;
-      }
-      if(done===total){
-        enableBtn('submitBkBtn');
-        renderWh();filterBk();
-        if(errs.length){showMsg('บางรายการผิดพลาด: '+errs[0],false);}
-        else{bkItems=[];renderBkList();showMsg('เบิกขึ้นรถสำเร็จ!',true);}
-      }
-    });
+
+function getGPS(){
+  var status=document.getElementById('gps-status');
+  status.textContent='กำลังดึงพิกัด...';
+  if(!navigator.geolocation){status.textContent='Browser ไม่รองรับ GPS';return;}
+  navigator.geolocation.getCurrentPosition(
+    function(pos){
+      document.getElementById('ulat').value=pos.coords.latitude.toFixed(6);
+      document.getElementById('ulng').value=pos.coords.longitude.toFixed(6);
+      status.textContent='✅ ได้พิกัดแล้ว (±'+Math.round(pos.coords.accuracy)+' ม.)';
+    },
+    function(){ document.getElementById('gps-status').textContent='❌ ไม่สามารถดึงพิกัดได้'; }
+  );
+}
+
+function addToJobList(){
+  var idx=parseInt(document.getElementById('ui').value);
+  if(isNaN(idx)){showMsg('กรุณาเลือกรายการ',false);return;}
+  var qty=parseInt(document.getElementById('uq').value)||0;
+  if(qty<=0){showMsg('กรุณาระบุจำนวน',false);return;}
+  var item=tr[idx];
+  if(Number(item.qty)<qty){showMsg('ของบนรถไม่พอ! เหลือ '+item.qty+' '+item.unit,false);return;}
+  var dup=jobItems.findIndex(function(j){return j.code===item.code;});
+  if(dup>=0){jobItems[dup].qty+=qty;}
+  else{jobItems.push({code:item.code,name:item.name,qty:qty,unit:item.unit});}
+  renderJobList();
+  document.getElementById('uq').value=1;
+  showMsg('เพิ่ม "'+item.name+'" แล้ว',true);
+}
+
+function renderJobList(){
+  var el=document.getElementById('joblist');
+  var btn=document.getElementById('submitJobBtn');
+  if(!jobItems.length){el.innerHTML='';btn.style.display='none';return;}
+  btn.style.display='block';
+  el.innerHTML='<div style="font-size:12px;color:var(--text2);margin-bottom:8px;text-transform:uppercase;letter-spacing:0.05em;font-family:monospace;">รายการที่จะบันทึก ('+jobItems.length+' รายการ)</div>'
+    +jobItems.map(function(item,i){
+      return '<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 10px;background:var(--bg2);border:1px solid var(--border);border-radius:6px;margin-bottom:6px;">'
+        +'<div><div style="font-size:10px;color:var(--text3);font-family:monospace;">'+item.code+'</div>'
+        +'<div style="font-size:13px;color:var(--text);">'+item.name+'</div>'
+        +'<div style="font-size:12px;color:var(--accent);font-family:monospace;font-weight:500;">'+item.qty+' '+item.unit+'</div></div>'
+        +'<button onclick="removeJobItem('+i+')" style="font-size:20px;background:none;border:none;color:var(--danger);cursor:pointer;padding:4px 8px;">×</button>'
+        +'</div>';
+    }).join('');
+}
+
+function removeJobItem(i){jobItems.splice(i,1);renderJobList();}
+
+// ── WITHDRAW ──
+function doWithdraw(){
+  var idx=parseInt(document.getElementById('bi').value);
+  if(isNaN(idx)){showMsg('กรุณาเลือกรายการ',false);return;}
+  var qty=parseInt(document.getElementById('bq').value)||0;
+  var shift=document.getElementById('bs').value;
+  if(qty<=0){showMsg('กรุณาระบุจำนวน',false);return;}
+  var item=wh[idx];
+  if(Number(item.qty)<qty){showMsg('ของในคลังไม่พอ! เหลือ '+item.qty+' '+item.unit,false);return;}
+  showMsg('กำลังบันทึก...',true);
+  apiPost({action:'withdraw',code:item.code,name:item.name,qty:qty,unit:item.unit,shift:shift},function(err,res){
+    if(err||res.error){showMsg('เกิดข้อผิดพลาด: '+(res&&res.error||''),false);return;}
+    item.qty=res.stockQty;
+    var trItem=tr.find(function(i){return i.code===item.code;});
+    if(trItem)trItem.qty=res.truckQty;
+    renderWh();filterBk();
+    showMsg('เบิก '+item.name+' '+qty+' '+unitTH(item.unit)+' สำเร็จ',true);
   });
-  showMsg('กำลังเบิกของ...',true);
 }
 
 // ── USE ──
+var jobItems=[];
+function addToJobList(){
+  var idx=parseInt(document.getElementById('ui').value);
+  if(isNaN(idx)){showMsg('กรุณาเลือกรายการ',false);return;}
+  var qty=parseInt(document.getElementById('uq').value)||0;
+  if(qty<=0){showMsg('กรุณาระบุจำนวน',false);return;}
+  var item=tr[idx];
+  if(Number(item.qty)<qty){showMsg('บนรถไม่พอ เหลือ '+item.qty,false);return;}
+  var dup=jobItems.findIndex(function(j){return j.code===item.code;});
+  if(dup>=0){jobItems[dup].qty+=qty;}
+  else{jobItems.push({code:item.code,name:item.name,qty:qty,unit:item.unit});}
+  renderJobList();
+  document.getElementById('uq').value=1;
+  showMsg('เพิ่มรายการแล้ว',true);
+}
+function renderJobList(){
+  var el=document.getElementById('joblist');
+  var btn=document.getElementById('submitJobBtn');
+  if(!jobItems.length){el.innerHTML='';if(btn)btn.style.display='none';return;}
+  if(btn)btn.style.display='block';
+  el.innerHTML='<div style="font-size:12px;color:var(--text2);margin-bottom:8px;">รายการที่จะบันทึก ('+jobItems.length+' รายการ)</div>'
+    +jobItems.map(function(item,i){
+      return '<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 10px;background:var(--bg2);border:1px solid var(--border);border-radius:6px;margin-bottom:6px;">'
+        +'<div><div style="font-size:10px;color:var(--text3);">'+item.code+'</div>'
+        +'<div style="font-size:13px;">'+item.name+'</div>'
+        +'<div style="font-size:12px;color:var(--accent);font-weight:500;">'+item.qty+' '+unitTH(item.unit)+'</div></div>'
+        +'<button onclick="removeJob('+i+')" style="font-size:20px;background:none;border:none;color:var(--danger);cursor:pointer;padding:4px 8px;">x</button>'
+        +'</div>';
+    }).join('');
+}
+function removeJob(i){jobItems.splice(i,1);renderJobList();}
 function doUse(){
-  if(!jobItems.length){showMsg('กรุณาเพิ่มรายการอุปกรณ์ก่อน',false);return;}
+  if(!jobItems.length){showMsg('กรุณาเพิ่มรายการก่อน',false);return;}
   var loc=document.getElementById('ul').value||'ไม่ระบุ';
   var shift=document.getElementById('us').value;
-  var lat=document.getElementById('ulat').value||'';
-  var lng=document.getElementById('ulng').value||'';
-  showMsg('กำลังบันทึก...',true);
-  apiPost({action:'useItem',items:jobItems,shift:shift,location:loc,lat:lat,lng:lng},function(err,res){
-    if(err){showMsg('เกิดข้อผิดพลาด',false);return;}
-    if(!res.results){showMsg('เกิดข้อผิดพลาด',false);return;}
-    var errors=res.results.filter(function(r){return r.error;});
-    if(errors.length){showMsg(errors[0].error,false);return;}
-    res.results.forEach(function(r){
-      var trItem=tr.find(function(i){return i.code===r.code;});
-      if(trItem)trItem.qty=r.truckQty;
+  var lat=document.getElementById('ulat')?document.getElementById('ulat').value:'';
+  var lng=document.getElementById('ulng')?document.getElementById('ulng').value:'';
+  var note=document.getElementById('unote')?document.getElementById('unote').value:'';
+  var summary=jobItems.map(function(i){return '• '+i.name+' '+i.qty+' '+unitTH(i.unit);}).join('<br>');
+  showConfirm('ยืนยันบันทึกงานแก้ไฟ','จุด: '+loc+'<br>กะ: '+shift+'<br><br>'+summary,function(){
+    disableBtn('submitJobBtn');
+    showMsg('กำลังบันทึก...',true);
+    apiPost({action:'useItem',items:jobItems,shift:shift,location:loc,lat:lat,lng:lng,note:note},function(err,res){
+      enableBtn('submitJobBtn');
+      if(err||!res||!res.results){showMsg('เกิดข้อผิดพลาด',false);return;}
+      var errs=res.results.filter(function(r){return r.error;});
+      if(errs.length){showMsg(errs[0].error,false);return;}
+      res.results.forEach(function(r){
+        var t=tr.find(function(i){return i.code===r.code;});
+        if(t)t.qty=r.truckQty;
+      });
+      jobItems=[];renderJobList();filterU();
+      showMsg('บันทึกงานแก้ไฟสำเร็จ! '+res.jobId,true);
     });
-    jobItems=[];renderJobList();filterU();
-    document.getElementById('ul').value='';
-    document.getElementById('ulat').value='';
-    document.getElementById('ulng').value='';
-    document.getElementById('gps-status').textContent='';
-    showMsg('✅ บันทึกงานแก้ไฟสำเร็จ! ใบงาน: '+res.jobId,true);
   });
 }
 
+
+// ── GPS ──
+function getGPS(){
+  var st=document.getElementById('gps-status');
+  st.textContent='กำลังดึงพิกัด...';
+  if(!navigator.geolocation){st.textContent='Browser ไม่รองรับ GPS';return;}
+  navigator.geolocation.getCurrentPosition(
+    function(pos){
+      document.getElementById('ulat').value=pos.coords.latitude.toFixed(6);
+      document.getElementById('ulng').value=pos.coords.longitude.toFixed(6);
+      st.textContent='OK (+-'+Math.round(pos.coords.accuracy)+' ม.)';
+    },
+    function(){document.getElementById('gps-status').textContent='ดึงพิกัดไม่ได้';}
+  );
+}
 
 // ── RETURN (คืนของ) ──
 function initKCat(){
@@ -751,13 +791,6 @@ function filterK(){
   document.getElementById('ki').innerHTML=html;
 }
 function doReturn(){
-  var idx2=parseInt(document.getElementById('ki').value);
-  if(isNaN(idx2)){showMsg('กรุณาเลือกรายการ',false);return;}
-  var qty2=parseInt(document.getElementById('kq').value)||0;
-  var item2=tr[idx2];
-  showConfirm('ยืนยันการคืนของ','คืน '+item2.name+' '+qty2+' '+unitTH(item2.unit)+' กลับคลัง',function(){_doReturnConfirmed();});
-}
-function _doReturnConfirmed(){
   var idx=parseInt(document.getElementById('ki').value);
   if(isNaN(idx)){showMsg('กรุณาเลือกรายการ',false);return;}
   var qty=parseInt(document.getElementById('kq').value)||0;
@@ -777,76 +810,69 @@ function _doReturnConfirmed(){
 }
 
 // ── REPORT ──
-var _reportFilter = 'all';
-var _reportGroups = {};
-var _reportOrder = [];
-
+var _rptFilter='all', _rptGroups={}, _rptOrder=[];
 function filterReport(type){
-  _reportFilter = type;
-  // อัปเดต border ปุ่ม
-  document.getElementById('rf-all').style.borderColor = type==='all' ? 'var(--accent)' : 'var(--border)';
-  document.getElementById('rf-w').style.borderColor = type==='เบิกขึ้นรถ' ? 'var(--accent)' : 'var(--border)';
-  document.getElementById('rf-u').style.borderColor = type==='งานแก้ไฟ' ? 'var(--accent)' : 'var(--border)';
+  _rptFilter=type;
+  ['all','เบิกขึ้นรถ','งานแก้ไฟ'].forEach(function(t){
+    var id=t==='all'?'rf-all':t==='เบิกขึ้นรถ'?'rf-w':'rf-u';
+    var el=document.getElementById(id);
+    if(el)el.style.borderColor=type===t?'var(--accent)':'var(--border)';
+  });
   renderReportList();
 }
-
 function renderReportList(){
-  var order = _reportFilter === 'all'
-    ? _reportOrder
-    : _reportOrder.filter(function(k){ return _reportGroups[k].type === _reportFilter; });
-  if(!order.length){
-    document.getElementById('rlist').innerHTML='<div class="empty">ไม่มีรายการ</div>';
-    return;
-  }
-  document.getElementById('rlist').innerHTML = order.map(function(key, ridx){
-    var g = _reportGroups[key];
-    var isW = g.type === 'เบิกขึ้นรถ';
-    var did = 'rdt'+ridx;
-    var bdg = '<span class="badge '+(isW?'badge-info':'badge-out')+'">'+g.type+'</span>';
-    var gps = g.lat&&g.lng ? '<span style="color:var(--success);">GPS </span>' : '';
-    var summary = g.items.map(function(i){return i.name+' '+i.qty+' '+unitTH(i.unit);}).join(', ');
-    var detailRows = g.items.map(function(i){
+  var order=_rptFilter==='all'?_rptOrder:_rptOrder.filter(function(k){return _rptGroups[k].type===_rptFilter;});
+  if(!order.length){document.getElementById('rlist').innerHTML='<div class="empty">ไม่มีรายการ</div>';return;}
+  document.getElementById('rlist').innerHTML=order.map(function(key,i){
+    var g=_rptGroups[key];
+    var isW=g.type==='เบิกขึ้นรถ';
+    var bdg='<span class="badge '+(isW?'badge-info':'badge-out')+'">'+g.type+'</span>';
+    var gps=g.lat&&g.lng?'<span style="color:var(--success);">GPS </span>':'';
+    var summary=g.items.map(function(i){return i.name+' '+i.qty+' '+unitTH(i.unit);}).join(', ');
+    var rows=g.items.map(function(i){
       return '<div style="display:flex;justify-content:space-between;padding:4px 0;font-size:12px;">'
         +'<span style="color:var(--text3);font-family:monospace;">'+i.code+'</span>'
         +'<span style="color:var(--text);flex:1;margin:0 8px;">'+i.name+'</span>'
-        +'<span style="color:var(--accent);font-family:monospace;font-weight:500;">'+i.qty+' '+unitTH(i.unit)+'</span>'
-        +'</div>';
+        +'<span style="color:var(--accent);font-family:monospace;font-weight:500;">'+i.qty+' '+unitTH(i.unit)+'</span></div>';
     }).join('');
-    var gpsRow = g.lat&&g.lng ? '<div style="font-size:11px;color:var(--success);margin-top:6px;">'+g.lat+', '+g.lng+'</div>' : '';
-    var noteRow = g.note ? '<div style="font-size:12px;color:var(--text2);margin-top:4px;">'+g.note+'</div>' : '';
+    var gpsRow=g.lat&&g.lng?'<div style="font-size:11px;color:var(--success);margin-top:4px;">'+g.lat+', '+g.lng+'</div>':'';
     return '<div class="report-item" onclick="togRpt(this)" style="cursor:pointer;">'
       +'<div class="report-top"><div style="flex:1;min-width:0;">'
       +'<div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">'+bdg+'<span style="font-size:11px;color:var(--text2);">'+g.items.length+' รายการ</span></div>'
-      +'<div class="report-name">'+gps+g.location+'</div>'
-      +'</div><span class="rpt-arrow" style="color:var(--text3);font-size:16px;margin-left:8px;">&#9660;</span></div>'
+      +'<div class="report-name">'+gps+g.location+'</div></div>'
+      +'<span class="rpt-arrow" style="color:var(--text3);font-size:16px;margin-left:8px;">&#9660;</span></div>'
       +'<div class="report-detail" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:4px;">'+summary+'</div>'
       +'<div class="report-time">'+fmtTime(g.timestamp)+' | '+g.shift+'</div>'
       +'<div class="rpt-detail" style="display:none;margin-top:10px;border-top:1px solid var(--border);padding-top:10px;">'
-      +detailRows+gpsRow+noteRow+'</div>'
-      +'</div>';
+      +rows+gpsRow+'</div></div>';
   }).join('');
 }
-
+function togRpt(card){
+  var el=card.querySelector('.rpt-detail');
+  var arr=card.querySelector('.rpt-arrow');
+  if(!el)return;
+  if(el.style.display==='none'){el.style.display='block';if(arr)arr.innerHTML='&#9650;';}
+  else{el.style.display='none';if(arr)arr.innerHTML='&#9660;';}
+}
 function renderReport(){
   apiGet('getLogs',function(err,data){
     if(err){document.getElementById('rlist').innerHTML='<div class="empty">โหลดไม่ได้ กด Sync</div>';return;}
     logs=data;
     var w=logs.filter(function(l){return l.type==='เบิกขึ้นรถ';}).length;
     var u=logs.filter(function(l){return l.type==='งานแก้ไฟ';}).length;
-    if(document.getElementById('rc0'))document.getElementById('rc0').textContent=w+u;
+    var rc0=document.getElementById('rc0');if(rc0)rc0.textContent=w+u;
     document.getElementById('rc1').textContent=w;
     document.getElementById('rc2').textContent=u;
     if(!logs.length){document.getElementById('rlist').innerHTML='<div class="empty">ยังไม่มีรายการ</div>';return;}
-    _reportGroups={};
-    _reportOrder=[];
+    _rptGroups={};_rptOrder=[];
     var rev=[].concat(logs).reverse();
     rev.forEach(function(l){
-      var key=l.jobId||('single_'+l.timestamp+'_'+l.code);
-      if(!_reportGroups[key]){
-        _reportGroups[key]={type:l.type,shift:l.shift,location:l.location,timestamp:l.timestamp,lat:l.lat||'',lng:l.lng||'',note:l.note||'',items:[],jobId:key};
-        _reportOrder.push(key);
+      var key=l.jobId||('s_'+l.timestamp+'_'+l.code);
+      if(!_rptGroups[key]){
+        _rptGroups[key]={type:l.type,shift:l.shift,location:l.location,timestamp:l.timestamp,lat:l.lat||'',lng:l.lng||'',items:[]};
+        _rptOrder.push(key);
       }
-      _reportGroups[key].items.push({code:l.code,name:l.name,qty:l.qty,unit:l.unit});
+      _rptGroups[key].items.push({code:l.code,name:l.name,qty:l.qty,unit:l.unit});
     });
     renderReportList();
   });
