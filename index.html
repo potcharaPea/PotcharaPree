@@ -25,9 +25,9 @@ body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans Thai',san
 
 .header{background:var(--bg2);border-bottom:1px solid var(--border);padding:12px 16px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;}
 .header-title{font-size:15px;font-weight:600;}
-.header-sub{font-size:11px;color:var(--text2);font-family:'IBM Plex Mono',monospace;}
+.header-sub{font-size:11px;color:var(--text2);font-family:monospace;}
 .header-right{display:flex;align-items:center;gap:8px;}
-.header-badge{background:var(--accent);color:#000;font-size:10px;font-weight:600;padding:3px 8px;border-radius:4px;font-family:'IBM Plex Mono',monospace;}
+.header-badge{background:var(--accent);color:#000;font-size:10px;font-weight:600;padding:3px 8px;border-radius:4px;font-family:monospace;}
 .sync-btn{background:none;border:1px solid var(--border2);color:var(--text2);font-size:11px;padding:4px 10px;border-radius:4px;cursor:pointer;font-family:'IBM Plex Sans Thai',sans-serif;}
 .sync-btn:active{background:var(--bg3);}
 
@@ -44,8 +44,8 @@ body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans Thai',san
 
 .metrics{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:14px;}
 .metric{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:14px;}
-.metric-label{font-size:11px;color:var(--text2);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.05em;font-family:'IBM Plex Mono',monospace;}
-.metric-value{font-size:24px;font-weight:600;font-family:'IBM Plex Mono',monospace;}
+.metric-label{font-size:11px;color:var(--text2);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.05em;font-family:monospace;}
+.metric-value{font-size:24px;font-weight:600;font-family:monospace;}
 .metric-value.ok{color:var(--success);}
 .metric-value.warn{color:var(--warning);}
 .metric-value.info{color:var(--info);}
@@ -61,18 +61,18 @@ body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans Thai',san
 .cat-header:hover{background:var(--bg3);}
 .cat-header-left{display:flex;align-items:center;gap:7px;flex:1;min-width:0;}
 .cat-name{font-size:13px;font-weight:500;color:var(--text);}
-.cat-count{font-size:11px;color:var(--text2);font-family:'IBM Plex Mono',monospace;flex-shrink:0;}
+.cat-count{font-size:11px;color:var(--text2);font-family:monospace;flex-shrink:0;}
 .cat-arrow{font-size:10px;color:var(--text3);transition:transform 0.2s;flex-shrink:0;}
 .cat-arrow.open{transform:rotate(180deg);}
 
 .item-row{display:flex;justify-content:space-between;align-items:center;padding:9px 14px;border-top:1px solid var(--border);}
 .item-left{flex:1;min-width:0;margin-right:8px;}
-.item-code{font-size:10px;color:var(--text3);font-family:'IBM Plex Mono',monospace;margin-bottom:2px;}
+.item-code{font-size:10px;color:var(--text3);font-family:monospace;margin-bottom:2px;}
 .item-name{font-size:13px;color:var(--text);margin-bottom:2px;line-height:1.3;}
-.item-qty{font-size:12px;color:var(--accent);font-family:'IBM Plex Mono',monospace;font-weight:500;}
+.item-qty{font-size:12px;color:var(--accent);font-family:monospace;font-weight:500;}
 .item-right{display:flex;align-items:center;gap:6px;flex-shrink:0;}
 
-.badge{font-size:10px;padding:2px 7px;border-radius:4px;font-weight:500;font-family:'IBM Plex Mono',monospace;white-space:nowrap;}
+.badge{font-size:10px;padding:2px 7px;border-radius:4px;font-weight:500;font-family:monospace;white-space:nowrap;}
 .badge-ok{background:rgba(16,185,129,0.15);color:var(--success);}
 .badge-low{background:rgba(245,158,11,0.15);color:var(--warning);}
 .badge-empty{background:rgba(239,68,68,0.15);color:var(--danger);}
@@ -85,7 +85,7 @@ body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans Thai',san
 .card{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:14px;margin-bottom:10px;}
 .card-title{font-size:14px;font-weight:600;margin-bottom:14px;}
 .form-group{margin-bottom:10px;}
-.form-label{font-size:11px;color:var(--text2);margin-bottom:5px;display:block;text-transform:uppercase;letter-spacing:0.04em;font-family:'IBM Plex Mono',monospace;}
+.form-label{font-size:11px;color:var(--text2);margin-bottom:5px;display:block;text-transform:uppercase;letter-spacing:0.04em;font-family:monospace;}
 .form-input{width:100%;padding:9px 12px;background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:13px;font-family:'IBM Plex Sans Thai',sans-serif;outline:none;transition:border 0.2s;}
 .form-input:focus{border-color:var(--accent);}
 .form-input::placeholder{color:var(--text3);}
@@ -112,10 +112,10 @@ select.form-input option{background:var(--bg2);}
 
 .report-item{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:12px;margin-bottom:8px;}
 .report-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px;gap:8px;}
-.report-code{font-size:10px;color:var(--text3);font-family:'IBM Plex Mono',monospace;margin-bottom:2px;}
+.report-code{font-size:10px;color:var(--text3);font-family:monospace;margin-bottom:2px;}
 .report-name{font-size:13px;font-weight:500;line-height:1.3;}
-.report-detail{font-size:12px;color:var(--text2);margin-top:4px;font-family:'IBM Plex Mono',monospace;}
-.report-time{font-size:10px;color:var(--text3);margin-top:3px;font-family:'IBM Plex Mono',monospace;}
+.report-detail{font-size:12px;color:var(--text2);margin-top:4px;font-family:monospace;}
+.report-time{font-size:10px;color:var(--text3);margin-top:3px;font-family:monospace;}
 .empty{text-align:center;padding:40px 16px;color:var(--text3);font-size:13px;}
 </style>
 </head>
@@ -125,11 +125,11 @@ select.form-input option{background:var(--bg2);}
 <div class="header">
   <div>
     <div class="header-title">คลังแก้ไฟ กฟส.คำชะอี</div>
-    <div class="header-sub">PEA INVENTORY v1.0</div>
+    <div class="header-sub">PEA INVENTORY v1.3</div>
   </div>
   <div class="header-right">
     <button class="sync-btn" onclick="syncAll()">↻ Sync</button>
-    <div class="header-badge">v1</div>
+    <div class="header-badge">v1.3</div>
   </div>
 </div>
 
@@ -179,7 +179,7 @@ select.form-input option{background:var(--bg2);}
     <div id="editForm" class="toggle-section" style="margin-top:10px;">
       <div class="card">
         <div class="card-title" id="editTitle">แก้ไขรายการ</div>
-        <div style="font-size:11px;color:var(--text2);margin-bottom:12px;font-family:'IBM Plex Mono',monospace;" id="editSub"></div>
+        <div style="font-size:11px;color:var(--text2);margin-bottom:12px;font-family:monospace;" id="editSub"></div>
         <div class="form-group"><label class="form-label">จำนวนใหม่</label><input id="eq" class="form-input" type="number" min="0"></div>
         <div class="form-group"><label class="form-label">หน่วยใหม่</label><input id="eu" class="form-input" type="text"></div>
         <div class="btn-grid">
@@ -241,18 +241,32 @@ select.form-input option{background:var(--bg2);}
 <div id="pu" style="display:none;">
   <div class="card">
     <div class="card-title">บันทึกงานแก้ไฟ</div>
-    <div class="form-group"><label class="form-label">หมวดหมู่</label><select id="ucat" class="form-input" onchange="filterU()"></select></div>
-    <div class="form-group">
-      <label class="form-label">ค้นหา</label>
-      <input id="usearch" class="form-input" type="text" placeholder="พิมพ์ชื่อหรือรหัส..." oninput="filterU()" style="margin-bottom:6px;">
-      <select id="ui" class="form-input"></select>
-    </div>
-    <div class="form-group"><label class="form-label">จำนวนที่ใช้</label><input id="uq" class="form-input" type="number" min="1" value="1"></div>
     <div class="form-group"><label class="form-label">จุดที่แก้ไข</label><input id="ul" class="form-input" type="text" placeholder="เช่น ถ.คำชะอี บ้านเลขที่ 123"></div>
+    <div class="form-group">
+      <label class="form-label">พิกัด GPS</label>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <input id="ulat" class="form-input" type="text" placeholder="Latitude" readonly style="flex:1;">
+        <input id="ulng" class="form-input" type="text" placeholder="Longitude" readonly style="flex:1;">
+        <button onclick="getGPS()" style="flex-shrink:0;padding:9px 12px;border-radius:6px;border:1px solid var(--accent);background:rgba(245,158,11,0.1);color:var(--accent);font-size:16px;cursor:pointer;">📍</button>
+      </div>
+      <div id="gps-status" style="font-size:11px;color:var(--text2);margin-top:4px;"></div>
+    </div>
     <div class="form-group"><label class="form-label">กะ</label>
       <select id="us" class="form-input"><option>กะเช้า</option><option>กะบ่าย</option><option>กะดึก</option></select>
     </div>
-    <button class="btn-submit" onclick="doUse()">บันทึกงานแก้ไฟ</button>
+    <div style="background:var(--bg3);border-radius:8px;padding:12px;margin-bottom:10px;">
+      <div style="font-size:12px;color:var(--accent);margin-bottom:10px;font-weight:500;">เลือกอุปกรณ์ที่ใช้</div>
+      <div class="form-group"><label class="form-label">หมวดหมู่</label><select id="ucat" class="form-input" onchange="filterU()"></select></div>
+      <div class="form-group">
+        <label class="form-label">ค้นหา</label>
+        <input id="usearch" class="form-input" type="text" placeholder="พิมพ์ชื่อหรือรหัส..." oninput="filterU()" style="margin-bottom:6px;">
+        <select id="ui" class="form-input"></select>
+      </div>
+      <div class="form-group"><label class="form-label">จำนวน</label><input id="uq" class="form-input" type="number" min="1" value="1"></div>
+      <button onclick="addToJobList()" style="width:100%;padding:10px;border-radius:6px;border:1px solid var(--info);background:rgba(59,130,246,0.1);color:var(--info);font-size:14px;font-weight:500;cursor:pointer;font-family:'IBM Plex Sans Thai',sans-serif;">+ เพิ่มรายการ</button>
+    </div>
+    <div id="joblist" style="margin-bottom:10px;"></div>
+    <button class="btn-submit" onclick="doUse()" id="submitJobBtn" style="display:none;">บันทึกงานแก้ไฟ</button>
   </div>
 </div>
 
@@ -563,12 +577,12 @@ function renderJobList(){
   var btn=document.getElementById('submitJobBtn');
   if(!jobItems.length){el.innerHTML='';btn.style.display='none';return;}
   btn.style.display='block';
-  el.innerHTML='<div style="font-size:12px;color:var(--text2);margin-bottom:8px;text-transform:uppercase;letter-spacing:0.05em;font-family:'IBM Plex Mono',monospace;">รายการที่จะบันทึก ('+jobItems.length+' รายการ)</div>'
+  el.innerHTML='<div style="font-size:12px;color:var(--text2);margin-bottom:8px;text-transform:uppercase;letter-spacing:0.05em;font-family:monospace;">รายการที่จะบันทึก ('+jobItems.length+' รายการ)</div>'
     +jobItems.map(function(item,i){
       return '<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 10px;background:var(--bg2);border:1px solid var(--border);border-radius:6px;margin-bottom:6px;">'
-        +'<div><div style="font-size:10px;color:var(--text3);font-family:'IBM Plex Mono',monospace;">'+item.code+'</div>'
+        +'<div><div style="font-size:10px;color:var(--text3);font-family:monospace;">'+item.code+'</div>'
         +'<div style="font-size:13px;color:var(--text);">'+item.name+'</div>'
-        +'<div style="font-size:12px;color:var(--accent);font-family:'IBM Plex Mono',monospace;font-weight:500;">'+item.qty+' '+item.unit+'</div></div>'
+        +'<div style="font-size:12px;color:var(--accent);font-family:monospace;font-weight:500;">'+item.qty+' '+item.unit+'</div></div>'
         +'<button onclick="removeJobItem('+i+')" style="font-size:20px;background:none;border:none;color:var(--danger);cursor:pointer;padding:4px 8px;">×</button>'
         +'</div>';
     }).join('');
