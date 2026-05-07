@@ -815,8 +815,15 @@ function renderReport() {
   apiGet('getLogs', function(err,data){
     if (err) { document.getElementById('rlist').innerHTML='<div class="empty">โหลดไม่ได้ กด Sync</div>'; return; }
     logs = data;
-    var w=logs.filter(function(l){return l.type==='เบิกขึ้นรถ';}).length;
-    var u=logs.filter(function(l){return l.type==='งานแก้ไฟ';}).length;
+    // นับ jobId ไม่ซ้ำ (1 งาน = 1 jobId)
+    var wIds={}, uIds={};
+    logs.forEach(function(l){
+      var k=l.jobId||('s_'+l.timestamp+'_'+l.code);
+      if(l.type==='เบิกขึ้นรถ') wIds[k]=1;
+      if(l.type==='งานแก้ไฟ') uIds[k]=1;
+    });
+    var w=Object.keys(wIds).length;
+    var u=Object.keys(uIds).length;
     var rc0=document.getElementById('rc0'); if(rc0) rc0.textContent=w+u;
     document.getElementById('rc1').textContent=w;
     document.getElementById('rc2').textContent=u;
