@@ -125,11 +125,11 @@ select.form-input option{background:var(--bg2);}
 <div class="header">
   <div>
     <div class="header-title">คลังแก้ไฟ กฟส.คำชะอี</div>
-    <div class="header-sub">PEA INVENTORY v1.5</div>
+    <div class="header-sub">PEA INVENTORY v1.6</div>
   </div>
   <div class="header-right">
     <button class="sync-btn" onclick="syncAll()">↻ Sync</button>
-    <div class="header-badge">v1.5</div>
+    <div class="header-badge">v1.6</div>
   </div>
 </div>
 
@@ -434,7 +434,12 @@ function buildCatHtml(items,openMap,src,showStatus){
     var sc=c.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
     html+='<div class="cat-block"><div class="cat-header" onclick="toggleCat(\''+sc+'\',\''+src+'\')">';
     html+='<div class="cat-header-left"><span class="cat-name">'+c+'</span><span class="cat-count">('+rows.length+')</span>';
-    if(low&&showStatus)html+='<span class="badge badge-low">'+low+' รายการ</span>';
+    var lowCount=rows.filter(function(i){return Number(i.qty)>0&&Number(i.qty)<=3;}).length;
+    var emptyCount=rows.filter(function(i){return Number(i.qty)<=0;}).length;
+    if(showStatus){
+      if(lowCount)html+='<span class="badge badge-low" style="margin-left:4px;">'+lowCount+' ใกล้หมด</span>';
+      if(emptyCount)html+='<span class="badge badge-empty" style="margin-left:4px;">'+emptyCount+' หมด</span>';
+    }
     html+='</div><span class="cat-arrow'+(isOpen?' open':'')+'">▼</span></div>';
     if(isOpen){
       rows.forEach(function(item){
