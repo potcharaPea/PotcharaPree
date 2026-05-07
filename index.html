@@ -364,7 +364,7 @@ function showMsg(text, ok) {
 function apiGet(action, cb) {
   fetch(API + '?action=' + action)
     .then(function(r){ return r.json(); })
-    .then(function(d){ cb(null, d.data||[]); })
+    .then(function(d){ cb(null, d.rows||[]); })
     .catch(function(e){ cb(e, null); });
 }
 function apiPost(payload, cb) {
