@@ -292,6 +292,19 @@ var editCode='';
 var pages=['w','t','k','u','r'];
 var navBtns=document.querySelectorAll('.nav-btn');
 
+// ── UNIT DISPLAY ──
+function unitTH(unit) {
+  var map = {
+    'EA':'ชิ้น','M':'เมตร','KG':'กิโลกรัม',
+    'ea':'ชิ้น','m':'เมตร','kg':'กิโลกรัม',
+    'ROLL':'ม้วน','roll':'ม้วน',
+    'SET':'ชุด','set':'ชุด',
+    'BOX':'กล่อง','box':'กล่อง',
+    'L':'ลิตร','l':'ลิตร'
+  };
+  return map[unit] || unit;
+}
+
 // ── API CALL ──
 function apiGet(action,cb){
   fetch(API+'?action='+action)
@@ -395,7 +408,7 @@ function buildCatHtml(items,openMap,src,showStatus){
         html+='<div class="item-qty">'+item.qty+' '+item.unit+'</div></div>';
         html+='<div class="item-right">';
         if(showStatus)html+=badge(Number(item.qty));
-        else html+='<span class="badge '+(Number(item.qty)>0?'badge-info':'badge-empty')+'">'+(Number(item.qty)>0?item.qty+' '+item.unit:'ว่าง')+'</span>';
+        else html+='<span class="badge '+(Number(item.qty)>0?'badge-info':'badge-empty')+'">'+(Number(item.qty)>0?item.qty+' '+unitTH(item.unit):'ว่าง')+'</span>';
         if(src==='wh')html+='<button class="btn-edit" onclick="openEdit(\''+item.code+'\')">แก้ไข</button>';
         html+='</div></div>';
       });
@@ -482,7 +495,7 @@ function buildGroupedOpts(arr,selCat,key){
     html+='<optgroup label="'+c+'">';
     rows.forEach(function(item,_){
       var idx=arr.indexOf(item);
-      html+='<option value="'+idx+'">'+item.code+' — '+item.name+' ('+item.qty+' '+item.unit+')</option>';
+      html+='<option value="'+idx+'">'+item.code+' — '+item.name+' ('+item.qty+' '+unitTH(item.unit)+')</option>';
     });
     html+='</optgroup>';
   });
@@ -508,11 +521,60 @@ function filterBk(){
   var key=(document.getElementById('bsearch').value||'').toLowerCase();
   document.getElementById('bi').innerHTML=buildGroupedOpts(wh,cat,key);
 }
+var jobItems=[];
+
 function filterU(){
   var cat=document.getElementById('ucat').value;
   var key=(document.getElementById('usearch').value||'').toLowerCase();
   document.getElementById('ui').innerHTML=buildGroupedOpts(tr,cat,key);
 }
+
+function getGPS(){
+  var status=document.getElementById('gps-status');
+  status.textContent='กำลังดึงพิกัด...';
+  if(!navigator.geolocation){status.textContent='Browser ไม่รองรับ GPS';return;}
+  navigator.geolocation.getCurrentPosition(
+    function(pos){
+      document.getElementById('ulat').value=pos.coords.latitude.toFixed(6);
+      document.getElementById('ulng').value=pos.coords.longitude.toFixed(6);
+      status.textContent='✅ ได้พิกัดแล้ว (±'+Math.round(pos.coords.accuracy)+' ม.)';
+    },
+    function(){ document.getElementById('gps-status').textContent='❌ ไม่สามารถดึงพิกัดได้'; }
+  );
+}
+
+function addToJobList(){
+  var idx=parseInt(document.getElementById('ui').value);
+  if(isNaN(idx)){showMsg('กรุณาเลือกรายการ',false);return;}
+  var qty=parseInt(document.getElementById('uq').value)||0;
+  if(qty<=0){showMsg('กรุณาระบุจำนวน',false);return;}
+  var item=tr[idx];
+  if(Number(item.qty)<qty){showMsg('ของบนรถไม่พอ! เหลือ '+item.qty+' '+item.unit,false);return;}
+  var dup=jobItems.findIndex(function(j){return j.code===item.code;});
+  if(dup>=0){jobItems[dup].qty+=qty;}
+  else{jobItems.push({code:item.code,name:item.name,qty:qty,unit:item.unit});}
+  renderJobList();
+  document.getElementById('uq').value=1;
+  showMsg('เพิ่ม "'+item.name+'" แล้ว',true);
+}
+
+function renderJobList(){
+  var el=document.getElementById('joblist');
+  var btn=document.getElementById('submitJobBtn');
+  if(!jobItems.length){el.innerHTML='';btn.style.display='none';return;}
+  btn.style.display='block';
+  el.innerHTML='<div style="font-size:12px;color:var(--text2);margin-bottom:8px;text-transform:uppercase;letter-spacing:0.05em;font-family:'IBM Plex Mono',monospace;">รายการที่จะบันทึก ('+jobItems.length+' รายการ)</div>'
+    +jobItems.map(function(item,i){
+      return '<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 10px;background:var(--bg2);border:1px solid var(--border);border-radius:6px;margin-bottom:6px;">'
+        +'<div><div style="font-size:10px;color:var(--text3);font-family:'IBM Plex Mono',monospace;">'+item.code+'</div>'
+        +'<div style="font-size:13px;color:var(--text);">'+item.name+'</div>'
+        +'<div style="font-size:12px;color:var(--accent);font-family:'IBM Plex Mono',monospace;font-weight:500;">'+item.qty+' '+item.unit+'</div></div>'
+        +'<button onclick="removeJobItem('+i+')" style="font-size:20px;background:none;border:none;color:var(--danger);cursor:pointer;padding:4px 8px;">×</button>'
+        +'</div>';
+    }).join('');
+}
+
+function removeJobItem(i){jobItems.splice(i,1);renderJobList();}
 
 // ── WITHDRAW ──
 function doWithdraw(){
@@ -530,26 +592,33 @@ function doWithdraw(){
     var trItem=tr.find(function(i){return i.code===item.code;});
     if(trItem)trItem.qty=res.truckQty;
     renderWh();filterBk();
-    showMsg('เบิก '+item.name+' '+qty+' '+item.unit+' สำเร็จ',true);
+    showMsg('เบิก '+item.name+' '+qty+' '+unitTH(item.unit)+' สำเร็จ',true);
   });
 }
 
 // ── USE ──
 function doUse(){
-  var idx=parseInt(document.getElementById('ui').value);
-  if(isNaN(idx)){showMsg('กรุณาเลือกรายการ',false);return;}
-  var qty=parseInt(document.getElementById('uq').value)||0;
+  if(!jobItems.length){showMsg('กรุณาเพิ่มรายการอุปกรณ์ก่อน',false);return;}
   var loc=document.getElementById('ul').value||'ไม่ระบุ';
   var shift=document.getElementById('us').value;
-  if(qty<=0){showMsg('กรุณาระบุจำนวน',false);return;}
-  var item=tr[idx];
-  if(Number(item.qty)<qty){showMsg('ของบนรถไม่พอ! เหลือ '+item.qty+' '+item.unit,false);return;}
+  var lat=document.getElementById('ulat').value||'';
+  var lng=document.getElementById('ulng').value||'';
   showMsg('กำลังบันทึก...',true);
-  apiPost({action:'useItem',code:item.code,name:item.name,qty:qty,unit:item.unit,shift:shift,location:loc},function(err,res){
-    if(err||res.error){showMsg('เกิดข้อผิดพลาด: '+(res&&res.error||''),false);return;}
-    item.qty=res.truckQty;
-    filterU();
-    showMsg('บันทึกงานแก้ไฟ '+item.name+' '+qty+' '+item.unit+' สำเร็จ',true);
+  apiPost({action:'useItem',items:jobItems,shift:shift,location:loc,lat:lat,lng:lng},function(err,res){
+    if(err){showMsg('เกิดข้อผิดพลาด',false);return;}
+    if(!res.results){showMsg('เกิดข้อผิดพลาด',false);return;}
+    var errors=res.results.filter(function(r){return r.error;});
+    if(errors.length){showMsg(errors[0].error,false);return;}
+    res.results.forEach(function(r){
+      var trItem=tr.find(function(i){return i.code===r.code;});
+      if(trItem)trItem.qty=r.truckQty;
+    });
+    jobItems=[];renderJobList();filterU();
+    document.getElementById('ul').value='';
+    document.getElementById('ulat').value='';
+    document.getElementById('ulng').value='';
+    document.getElementById('gps-status').textContent='';
+    showMsg('✅ บันทึกงานแก้ไฟสำเร็จ! ใบงาน: '+res.jobId,true);
   });
 }
 
@@ -577,7 +646,7 @@ function filterK(){
     html+='<optgroup label="'+c+'">';
     rows.forEach(function(item){
       var idx=tr.indexOf(item);
-      html+='<option value="'+idx+'">'+item.code+' — '+item.name+' (บนรถ: '+item.qty+' '+item.unit+')</option>';
+      html+='<option value="'+idx+'">'+item.code+' — '+item.name+' (บนรถ: '+item.qty+' '+unitTH(item.unit)+')</option>';
     });
     html+='</optgroup>';
   });
@@ -598,7 +667,7 @@ function doReturn(){
     var whItem=wh.find(function(i){return i.code===item.code;});
     if(whItem)whItem.qty=res.stockQty;
     renderWh();filterK();
-    showMsg('คืน '+item.name+' '+qty+' '+item.unit+' กลับคลังสำเร็จ',true);
+    showMsg('คืน '+item.name+' '+qty+' '+unitTH(item.unit)+' กลับคลังสำเร็จ',true);
   });
 }
 
@@ -617,7 +686,7 @@ function renderReport(){
       return '<div class="report-item">'
         +'<div class="report-top"><div><div class="report-code">'+l.code+'</div><div class="report-name">'+l.name+'</div></div>'
         +'<span class="badge '+(isW?'badge-info':'badge-out')+'">'+l.type+'</span></div>'
-        +'<div class="report-detail">'+l.qty+' '+l.unit+' | '+l.shift+' | '+l.location+'</div>'
+        +'<div class="report-detail">'+l.qty+' '+unitTH(l.unit)+' | '+l.shift+' | '+l.location+'</div>'
         +'<div class="report-time">'+l.timestamp+'</div></div>';
     }).join('');
   });
