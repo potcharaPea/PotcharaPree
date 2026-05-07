@@ -537,7 +537,34 @@ function renderTr(){
   if(tc)tc.textContent=total;
   if(tc2)tc2.textContent=has;
   var el=document.getElementById('trcatlist');
-  if(el)el.innerHTML=tr.length?buildCatHtml(tr,openTr,'tr',false):'<div class="empty">ยังไม่มีข้อมูล กด Sync ก่อนครับ</div>';
+  if(!el)return;
+  var key=(document.getElementById('tsearch')?document.getElementById('tsearch').value||'':'').toLowerCase();
+  var html='';
+  CATS.forEach(function(cat,ci){
+    var rows=tr.filter(function(i){
+      var mk=!key||(String(i.name).toLowerCase().includes(key)||String(i.code).includes(key));
+      return i.cat===cat&&mk;
+    });
+    if(!rows.length)return;
+    var isOpen=openTr[cat];
+    html+='<div class="cat-block">';
+    html+='<div class="cat-hdr" onclick="toggleCat(CATS['+ci+'],\'tr\')"><div class="cat-hdr-left">';
+    html+='<span class="cat-name">'+cat+'</span><span class="cat-count">('+rows.length+')</span>';
+    html+='</div><span class="cat-arrow'+(isOpen?' open':'')+'">▼</span></div>';
+    if(isOpen){
+      rows.forEach(function(item){
+        var qty=Number(item.qty);
+        var bdg=qty>0?'<span class="badge badge-info">'+qty+' '+unitTH(item.unit)+'</span>':'<span class="badge badge-empty">ว่าง</span>';
+        html+='<div class="item-row"><div class="item-left">'
+          +'<div class="item-code">'+item.code+'</div>'
+          +'<div class="item-name">'+item.name+'</div>'
+          +'<div class="item-qty">'+item.qty+' '+unitTH(item.unit)+'</div>'
+          +'</div><div class="item-right">'+bdg+'</div></div>';
+      });
+    }
+    html+='</div>';
+  });
+  el.innerHTML=html||'<div class="empty">ไม่พบรายการ</div>';
 }
 
 // ── EDIT ──
