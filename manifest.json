@@ -1,13 +1,25 @@
 {
   "name": "คลังแก้ไฟ กฟส.คำชะอี",
   "short_name": "KCE คลังแก้ไฟ",
-  "description": "ระบบคลังอุปกรณ์แก้ไฟฟ้าขัดข้อง กฟส.คำชะอี",
+  "description": "ระบบคลังอุปกรณ์แก้ไฟฟ้าของ กฟส.คำชะอี",
   "start_url": "/PotcharaPree/",
   "display": "standalone",
   "background_color": "#0f1117",
   "theme_color": "#f59e0b",
   "orientation": "portrait",
   "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
     {
       "src": "icon.svg",
       "sizes": "any",
