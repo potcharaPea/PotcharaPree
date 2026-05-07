@@ -63,7 +63,7 @@ body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans Thai',san
 .item-left{flex:1;min-width:0;margin-right:8px;}
 .item-code{font-size:10px;color:var(--text3);font-family:'IBM Plex Mono',monospace;margin-bottom:2px;}
 .item-name{font-size:13px;color:var(--text);margin-bottom:2px;line-height:1.3;}
-.item-qty{font-size:12px;color:var(--text2);font-family:'IBM Plex Mono',monospace;}
+.item-qty{font-size:12px;color:var(--accent);font-family:'IBM Plex Mono',monospace;font-weight:500;}
 .item-right{display:flex;align-items:center;gap:6px;flex-shrink:0;}
 
 .badge{font-size:10px;padding:2px 7px;border-radius:4px;font-weight:500;font-family:'IBM Plex Mono',monospace;white-space:nowrap;}
@@ -130,6 +130,7 @@ select.form-input option{background:var(--bg2);}
 <div class="nav">
   <button class="nav-btn active" onclick="nav('w',this)">คลัง / เบิกของ</button>
   <button class="nav-btn" onclick="nav('t',this)">รถแก้ไฟ</button>
+  <button class="nav-btn" onclick="nav('k',this)">คืนของ</button>
   <button class="nav-btn" onclick="nav('u',this)">งานแก้ไฟ</button>
   <button class="nav-btn" onclick="nav('r',this)">Report</button>
 </div>
@@ -145,9 +146,10 @@ select.form-input option{background:var(--bg2);}
   </div>
 
   <div id="swh">
-    <div class="metrics">
-      <div class="metric"><div class="metric-label">รายการทั้งหมด</div><div class="metric-value ok" id="wc">—</div></div>
-      <div class="metric"><div class="metric-label">หมด/ใกล้หมด</div><div class="metric-value warn" id="lc">—</div></div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px;">
+      <div class="metric"><div class="metric-label">ทั้งหมด</div><div class="metric-value ok" id="wc">—</div></div>
+      <div class="metric"><div class="metric-label">ใกล้หมด</div><div class="metric-value warn" id="lc">—</div></div>
+      <div class="metric"><div class="metric-label">หมดแล้ว</div><div class="metric-value" style="color:var(--danger);" id="ec">—</div></div>
     </div>
     <div class="search-box"><span class="search-icon">⌕</span><input id="wsearch" type="text" placeholder="ค้นหาชื่อหรือรหัสพัสดุ..." oninput="renderWh()"></div>
     <div id="catlist"><div class="loading"><div class="loading-spinner"></div><div>กำลังโหลดข้อมูล...</div></div></div>
@@ -210,6 +212,25 @@ select.form-input option{background:var(--bg2);}
   <div id="trcatlist"><div class="loading"><div class="loading-spinner"></div><div>กำลังโหลด...</div></div></div>
 </div>
 
+
+<!-- คืนของ -->
+<div id="pk" style="display:none;">
+  <div class="card">
+    <div class="card-title">คืนของจากรถกลับคลัง</div>
+    <div class="form-group"><label class="form-label">หมวดหมู่</label><select id="kcat" class="form-input" onchange="filterK()"></select></div>
+    <div class="form-group">
+      <label class="form-label">ค้นหา</label>
+      <input id="ksearch" class="form-input" type="text" placeholder="พิมพ์ชื่อหรือรหัส..." oninput="filterK()" style="margin-bottom:6px;">
+      <select id="ki" class="form-input"></select>
+    </div>
+    <div class="form-group"><label class="form-label">จำนวนที่คืน</label><input id="kq" class="form-input" type="number" min="1" value="1"></div>
+    <div class="form-group"><label class="form-label">กะ</label>
+      <select id="ks" class="form-input"><option>กะเช้า</option><option>กะบ่าย</option><option>กะดึก</option></select>
+    </div>
+    <button class="btn-submit" style="margin-top:4px;background:#10b981;border:none;" onclick="doReturn()">คืนของกลับคลัง</button>
+  </div>
+</div>
+
 <!-- งานแก้ไฟ -->
 <div id="pu" style="display:none;">
   <div class="card">
@@ -262,7 +283,7 @@ var wh=[], tr=[], logs=[];
 var openWh={}, openTr={};
 cats.forEach(function(c){openWh[c]=false;openTr[c]=false;});
 var editCode='';
-var pages=['w','t','u','r'];
+var pages=['w','t','k','u','r'];
 var navBtns=document.querySelectorAll('.nav-btn');
 
 // ── API CALL ──
@@ -308,6 +329,7 @@ function nav(p,el){
   document.getElementById('p'+p).style.display='block';
   el.classList.add('active');
   if(p==='t')renderTr();
+  if(p==='k'){initKCat();}
   if(p==='u'){initUCat();filterU();}
   if(p==='r')renderReport();
 }
@@ -380,7 +402,8 @@ function buildCatHtml(items,openMap,src,showStatus){
 function renderWh(){
   document.getElementById('catlist').innerHTML=wh.length?buildCatHtml(wh,openWh,'wh',true):'<div class="empty">ยังไม่มีข้อมูล กด Sync ก่อนครับ</div>';
   document.getElementById('wc').textContent=wh.length;
-  document.getElementById('lc').textContent=wh.filter(function(i){return Number(i.qty)<=3;}).length;
+  document.getElementById('lc').textContent=wh.filter(function(i){return Number(i.qty)>0&&Number(i.qty)<=3;}).length;
+  document.getElementById('ec').textContent=wh.filter(function(i){return Number(i.qty)<=0;}).length;
 }
 
 function renderTr(){
@@ -521,6 +544,55 @@ function doUse(){
     item.qty=res.truckQty;
     filterU();
     showMsg('บันทึกงานแก้ไฟ '+item.name+' '+qty+' '+item.unit+' สำเร็จ',true);
+  });
+}
+
+
+// ── RETURN (คืนของ) ──
+function initKCat(){
+  var catOpts='<option value="ทั้งหมด">ทั้งหมด</option>'+cats.map(function(c){return '<option value="'+c+'">'+c+'</option>';}).join('');
+  document.getElementById('kcat').innerHTML=catOpts;
+  filterK();
+}
+function filterK(){
+  var cat=document.getElementById('kcat').value;
+  var key=(document.getElementById('ksearch').value||'').toLowerCase();
+  // แสดงเฉพาะรายการที่มีบนรถ qty > 0
+  var filtered=tr.filter(function(i){return Number(i.qty)>0;});
+  var cat2=cat==='ทั้งหมด'?null:cat;
+  var html='<option value="">-- เลือกรายการ --</option>';
+  cats.forEach(function(c){
+    var rows=filtered.filter(function(i){
+      var mc=!cat2||i.cat===cat2;
+      var mk=!key||(String(i.name).toLowerCase().includes(key)||String(i.code).includes(key));
+      return i.cat===c&&mc&&mk;
+    });
+    if(!rows.length)return;
+    html+='<optgroup label="'+c+'">';
+    rows.forEach(function(item){
+      var idx=tr.indexOf(item);
+      html+='<option value="'+idx+'">'+item.code+' — '+item.name+' (บนรถ: '+item.qty+' '+item.unit+')</option>';
+    });
+    html+='</optgroup>';
+  });
+  document.getElementById('ki').innerHTML=html;
+}
+function doReturn(){
+  var idx=parseInt(document.getElementById('ki').value);
+  if(isNaN(idx)){showMsg('กรุณาเลือกรายการ',false);return;}
+  var qty=parseInt(document.getElementById('kq').value)||0;
+  var shift=document.getElementById('ks').value;
+  if(qty<=0){showMsg('กรุณาระบุจำนวน',false);return;}
+  var item=tr[idx];
+  if(Number(item.qty)<qty){showMsg('ของบนรถไม่พอ! เหลือ '+item.qty+' '+item.unit,false);return;}
+  showMsg('กำลังบันทึก...',true);
+  apiPost({action:'returnItem',code:item.code,name:item.name,qty:qty,unit:item.unit,shift:shift},function(err,res){
+    if(err||res.error){showMsg('เกิดข้อผิดพลาด: '+(res&&res.error||''),false);return;}
+    item.qty=res.truckQty;
+    var whItem=wh.find(function(i){return i.code===item.code;});
+    if(whItem)whItem.qty=res.stockQty;
+    renderWh();filterK();
+    showMsg('คืน '+item.name+' '+qty+' '+item.unit+' กลับคลังสำเร็จ',true);
   });
 }
 
