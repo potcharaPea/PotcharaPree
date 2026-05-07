@@ -1039,11 +1039,11 @@ function renderDash() {
     if (ts.indexOf('T')>0) {
       // ISO format: 2569-05-07T... (ปี พ.ศ.)
       var p=ts.split('T')[0].split('-');
-      if (p.length===3) { yr=parseInt(p[0]); if(yr>2500) yr=yr-543; mn=parseInt(p[1]); }
+      if (p.length===3) { yr=parseInt(p[0]); if(yr<2500) yr=yr+543; mn=parseInt(p[1]); }
     } else if (ts.indexOf('/')>0) {
       // dd/MM/yyyy format
       var p2=ts.split(' ')[0].split('/');
-      if (p2.length===3) { yr=parseInt(p2[2]); if(yr>2500) yr=yr-543; mn=parseInt(p2[1]); }
+      if (p2.length===3) { yr=parseInt(p2[2]); if(yr<2500) yr=yr+543; mn=parseInt(p2[1]); }
     }
     return yr===selYr && mn===selMn;
   });
@@ -1152,7 +1152,7 @@ function editJobItem(key, code, oldQty, unit, name) {
 
 // INIT
 var now=new Date();
-document.getElementById('dash-month').value=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0');
+document.getElementById('dash-month').value=(now.getFullYear()+543)+'-'+String(now.getMonth()+1).padStart(2,'0');
 document.getElementById('acat').innerHTML=CATS.map(function(c){return '<option value="'+c+'">'+c+'</option>';}).join('');
 syncAll();
 </script>
