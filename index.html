@@ -108,6 +108,7 @@ select.fi option{background:var(--bg2);}
 .modal-title{font-size:16px;font-weight:600;margin-bottom:8px;}
 .modal-body{font-size:13px;color:var(--text2);margin-bottom:20px;line-height:1.6;}
 .modal-btns{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.dev-credit{text-align:center;padding:18px 16px 24px;color:var(--text3);font-size:10px;font-family:"IBM Plex Mono",monospace;letter-spacing:0.05em;border-top:1px solid var(--border);margin-top:8px;line-height:1.8;user-select:none;}
 .rpt-card{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:12px;margin-bottom:8px;cursor:pointer;}
 .rpt-card:hover{border-color:var(--border2);}
 .rpt-top{display:flex;justify-content:space-between;align-items:flex-start;}
@@ -129,11 +130,11 @@ select.fi option{background:var(--bg2);}
 <div class="hdr">
   <div>
     <div class="hdr-title">คลังแก้ไฟ กฟส.คำชะอี</div>
-    <div class="hdr-sub">PEA INVENTORY v0.13</div>
+    <div class="hdr-sub">PEA INVENTORY v0.14</div>
   </div>
   <div style="display:flex;align-items:center;gap:8px;">
     <button class="sync-btn" onclick="syncAll()">↻ Sync</button>
-    <div class="ver">v0.13</div>
+    <div class="ver">v0.14</div>
   </div>
 </div>
 
@@ -336,6 +337,14 @@ select.fi option{background:var(--bg2);}
   </div>
 </div>
 
+<!-- Watermark -->
+<div class="dev-credit">
+  ⚡ พัฒนาโดย<br>
+  นายพชระ ปรีดากรณ์<br>
+  วศก.ผปร. กฟส.คำชะอี<br>
+  PEA INVENTORY v0.14
+</div>
+
 <script>
 var API = 'https://script.google.com/macros/s/AKfycbxK4orEAgbho3uKT7qukIArIdJd8oJXjy1g3KLEmaaoHfy60gCaRuSzoj34HnnjX_5V/exec';
 var CATS = ['สายไฟแรงสูง (AL / ACSR / SAC)','สายไฟแรงต่ำ (PVC / ลวด / เทป)','หลอดต่อสาย และหางปลา','คอนเนคเตอร์ และ Hotline Clamp','PREFORMED และอุปกรณ์ยึดสาย','ลูกถ้วยไฟฟ้า','ล่อฟ้า และดรอพเอาท์ฟิวส์','ฟิวส์แรงสูง (ฟิวส์ลิงค์)','ฟิวส์แรงต่ำ และสวิตช์','Pole line hardware'];
@@ -417,10 +426,12 @@ function syncAll() {
   showMsg('กำลัง sync ข้อมูล...', 'info');
   apiGet('getStock', function(err, data) {
     if (err) { showMsg('ไม่สามารถเชื่อมต่อได้', false); return; }
-    wh = data;
+    wh = data || [];
     apiGet('getTruck', function(err2, data2) {
+      if (err2) { showMsg('โหลดข้อมูลรถไม่ได้', false); return; }
       tr = data2 || [];
       apiGet('getLogs', function(err3, data3) {
+        if (err3) { showMsg('โหลด logs ไม่ได้', false); return; }
         logs = data3 || [];
         renderWh(); renderTr(); initSelects();
         showMsg('Sync สำเร็จ!', true);
@@ -581,7 +592,7 @@ function renderWh() {
 function renderTr() {
   var tc = document.getElementById('tc');
   var tc2 = document.getElementById('tc2');
-  var total = tr.reduce(function(s,i){ return s+Number(i.qty); }, 0);
+  var total = tr.reduce(function(s,i){ var q=parseFloat(i.qty); return s+(isNaN(q)?0:q); }, 0);
   var has = tr.filter(function(i){ return Number(i.qty)>0; }).length;
   if (tc) tc.textContent = total;
   if (tc2) tc2.textContent = has;
@@ -700,8 +711,9 @@ function addToBk() {
   var idx = parseInt(document.getElementById('bi').value);
   if (isNaN(idx)) { showMsg('กรุณาเลือกรายการ', false); return; }
   var qty = parseInt(document.getElementById('bq').value)||0;
-  if (qty<=0) { showMsg('กรุณาระบุจำนวน', false); return; }
+  if (qty<=0 || !Number.isInteger(qty)) { showMsg('กรุณาระบุจำนวนเป็นจำนวนเต็มบวก', false); return; }
   var item = wh[idx];
+  if (!item) { showMsg('ไม่พบรายการ', false); return; }
   if (Number(item.qty)<qty) { showMsg('ของในคลังไม่พอ เหลือ '+item.qty, false); return; }
   var dup = bkItems.findIndex(function(j){ return j.code===item.code; });
   if (dup>=0) bkItems[dup].qty+=qty;
@@ -740,7 +752,7 @@ function doWithdraw() {
         }
         if (done===total) {
           enableBtn('submitBkBtn'); renderWh(); filterBk();
-          if (errs.length) showMsg('ผิดพลาด: '+errs[0], false);
+          if (errs.length) { showMsg('ผิดพลาด: '+errs[0], false); }
           else { bkItems=[]; renderBkList(); showMsg('เบิกขึ้นรถสำเร็จ!', true); }
         }
       });
@@ -769,8 +781,9 @@ function addToJob() {
   var idx=parseInt(document.getElementById('ui').value);
   if (isNaN(idx)) { showMsg('กรุณาเลือกรายการ', false); return; }
   var qty=parseInt(document.getElementById('uq').value)||0;
-  if (qty<=0) { showMsg('กรุณาระบุจำนวน', false); return; }
+  if (qty<=0 || !Number.isInteger(qty)) { showMsg('กรุณาระบุจำนวนเป็นจำนวนเต็มบวก', false); return; }
   var item=tr[idx];
+  if (!item) { showMsg('ไม่พบรายการ', false); return; }
   if (Number(item.qty)<qty) { showMsg('บนรถไม่พอ เหลือ '+item.qty, false); return; }
   var dup=jobItems.findIndex(function(j){return j.code===item.code;});
   if (dup>=0) jobItems[dup].qty+=qty;
@@ -822,15 +835,16 @@ function doReturn() {
   var idx=parseInt(document.getElementById('ki').value);
   if (isNaN(idx)) { showMsg('กรุณาเลือกรายการ', false); return; }
   var qty=parseInt(document.getElementById('kq').value)||0;
-  if (qty<=0) { showMsg('กรุณาระบุจำนวน', false); return; }
+  if (qty<=0 || !Number.isInteger(qty)) { showMsg('กรุณาระบุจำนวนเป็นจำนวนเต็มบวก', false); return; }
   var shift=document.getElementById('ks').value;
   var item=tr[idx];
+  if (!item) { showMsg('ไม่พบรายการ', false); return; }
   if (Number(item.qty)<qty) { showMsg('บนรถไม่พอ เหลือ '+item.qty, false); return; }
   showConfirm('ยืนยันการคืนของ', 'คืน <b>'+item.name+'</b><br>'+qty+' '+unitTH(item.unit)+' กลับคลัง', function(){
     disableBtn('submitKBtn');
     apiPost({action:'returnItem', code:item.code, name:item.name, qty:qty, unit:item.unit, shift:shift}, function(err,res){
       enableBtn('submitKBtn');
-      if (err||!res.success) { showMsg('เกิดข้อผิดพลาด: '+(res&&res.error||''), false); return; }
+      if (err||!res||!res.success) { showMsg('เกิดข้อผิดพลาด: '+(res&&res.error||''), false); return; }
       item.qty=res.truckQty;
       var w=wh.find(function(i){return i.code===item.code;}); if(w) w.qty=res.stockQty;
       renderWh(); filterK(); showMsg('คืน "'+item.name+'" กลับคลังสำเร็จ', true);
@@ -862,8 +876,8 @@ function renderReport() {
     var w=Object.keys(wIds).length;
     var u=Object.keys(uIds).length;
     var rc0=document.getElementById('rc0'); if(rc0) rc0.textContent=w+u;
-    document.getElementById('rc1').textContent=w;
-    document.getElementById('rc2').textContent=u;
+    var rc1=document.getElementById('rc1'); if(rc1) rc1.textContent=w;
+    var rc2=document.getElementById('rc2'); if(rc2) rc2.textContent=u;
     if (!logs.length) { document.getElementById('rlist').innerHTML='<div class="empty">ยังไม่มีรายการ</div>'; return; }
     _rptGroups={}; _rptOrder=[];
     [].concat(logs).reverse().forEach(function(l){
@@ -940,7 +954,8 @@ function renderRptList() {
       var bdgRow=document.createElement('div');
       bdgRow.style.cssText='display:flex;align-items:center;gap:6px;margin-bottom:4px;';
       var bdg=document.createElement('span');
-      bdg.className='badge '+(isW?'b-info':'b-job');
+      var typeColor={'เบิกขึ้นรถ':'b-info','งานแก้ไฟ':'b-job','เบิกของ':'b-info','คืนของ':'b-ok','คืนจากงาน':'b-ok'};
+      bdg.className='badge '+(typeColor[g.type]||'b-info');
       bdg.textContent=g.type;
       var cntSp=document.createElement('span');
       cntSp.style.cssText='font-size:11px;color:var(--text2);';
@@ -1077,6 +1092,7 @@ function printJob(key) {
   var jobId=key.indexOf('JOB-')===0?key:'-';
   var gpsText=g.lat&&g.lng?g.lat+', '+g.lng:'';
   var win=window.open('','_blank');
+  if (!win) { showMsg('กรุณาอนุญาต Popup เพื่อพิมพ์ใบงาน', false); return; }
   var html='<!DOCTYPE html><html><head><meta charset="UTF-8"><title>ใบงานแก้ไฟ</title>'
     +'<style>body{font-family:sans-serif;padding:24px;font-size:13px;color:#111;}'
     +'h1{font-size:15px;margin:0;}h2{font-size:12px;margin:4px 0;font-weight:normal;color:#555;}'
@@ -1253,9 +1269,7 @@ function showSubTab(tab) {
 }
 function renderItemSelectList(){
   var sel=document.getElementById('itemSelect');
-  sel.innerHTML='<option value="">กำลังโหลด...</option>';
-  apiGet('getLogs', function(err, data){
-    logs = data || logs;
+  function populateSelect() {
     sel.innerHTML='<option value="">— เลือกรายการพัสดุ —</option>';
     var items={};
     logs.forEach(function(l){if(l.code) items[l.code]=l.name;});
@@ -1263,39 +1277,49 @@ function renderItemSelectList(){
       var opt=document.createElement('option');
       opt.value=e[0]; opt.textContent=e[0]+' — '+e[1]; sel.appendChild(opt);
     });
+  }
+  if (logs.length) { populateSelect(); return; }
+  sel.innerHTML='<option value="">กำลังโหลด...</option>';
+  apiGet('getLogs', function(err, data){
+    if (!err) logs = data || logs;
+    populateSelect();
   });
 }
 function renderItemHistory(){
   var code=document.getElementById('itemSelect').value;
   var list=document.getElementById('itemHistoryList');
   if(!code){list.innerHTML='';return;}
+  function showHistory() {
+    var filtered=logs.filter(function(l){return String(l.code)===String(code);}).slice().reverse();
+    if(!filtered.length){list.innerHTML='<div class="empty">ไม่พบประวัติ</div>';return;}
+    var totalUsed=filtered.filter(function(l){return l.type==='งานแก้ไฟ';}).reduce(function(s,l){return s+Number(l.qty);},0);
+    var totalW=filtered.filter(function(l){return l.type==='เบิกของ'||l.type==='เบิกขึ้นรถ';}).reduce(function(s,l){return s+Number(l.qty);},0);
+    var totalR=filtered.filter(function(l){return l.type==='คืนของ'||l.type==='คืนจากงาน';}).reduce(function(s,l){return s+Number(l.qty);},0);
+    var colors={'งานแก้ไฟ':'var(--warn)','เบิกของ':'var(--info)','เบิกขึ้นรถ':'var(--info)','คืนของ':'var(--ok)','คืนจากงาน':'var(--ok)'};
+    var html='<div class="metrics m3" style="margin-bottom:12px;">'
+      +'<div class="metric"><div class="metric-lbl">เบิกรวม</div><div class="metric-val c-info" style="font-size:22px;">'+totalW+'</div></div>'
+      +'<div class="metric"><div class="metric-lbl">ใช้รวม</div><div class="metric-val c-warn" style="font-size:22px;">'+totalUsed+'</div></div>'
+      +'<div class="metric"><div class="metric-lbl">คืนรวม</div><div class="metric-val c-ok" style="font-size:22px;">'+totalR+'</div></div>'
+      +'</div><div class="card">';
+    filtered.forEach(function(l){
+      var color=colors[l.type]||'var(--text2)';
+      html+='<div style="border-bottom:1px solid var(--border);padding:10px 0;display:flex;gap:10px;">'
+        +'<div style="width:8px;height:8px;border-radius:50%;background:'+color+';flex-shrink:0;margin-top:5px;"></div>'
+        +'<div style="flex:1;"><div style="display:flex;align-items:center;gap:6px;margin-bottom:3px;">'
+        +'<span style="font-size:10px;padding:2px 6px;border-radius:4px;background:rgba(255,255,255,0.07);color:'+color+';">'+l.type+'</span>'
+        +'<span style="font-size:11px;color:var(--text2);">'+fmtTime(l.timestamp)+'</span></div>'
+        +'<div style="font-size:13px;font-weight:500;">'+Number(l.qty)+' '+unitTH(l.unit)+(l.location?' — '+l.location:'')+'</div>'
+        +(l.shift?'<div style="font-size:11px;color:var(--text2);">'+l.shift+(l.jobId?' | '+l.jobId:'')+'</div>':'')
+        +'</div></div>';
+    });
+    html+='</div>';
+    list.innerHTML=html;
+  }
+  if (logs.length) { showHistory(); return; }
   list.innerHTML='<div class="loading"><div class="spinner"></div><div>กำลังโหลด...</div></div>';
   apiGet('getLogs', function(err, data){
-    logs = data || logs;
-    var filtered=logs.filter(function(l){return String(l.code)===String(code);}).slice().reverse();
-  if(!filtered.length){list.innerHTML='<div class="empty">ไม่พบประวัติ</div>';return;}
-  var totalUsed=filtered.filter(function(l){return l.type==='งานแก้ไฟ';}).reduce(function(s,l){return s+Number(l.qty);},0);
-  var totalW=filtered.filter(function(l){return l.type==='เบิกของ'||l.type==='เบิกขึ้นรถ';}).reduce(function(s,l){return s+Number(l.qty);},0);
-  var totalR=filtered.filter(function(l){return l.type==='คืนของ'||l.type==='คืนจากงาน';}).reduce(function(s,l){return s+Number(l.qty);},0);
-  var colors={'งานแก้ไฟ':'var(--warn)','เบิกของ':'var(--info)','เบิกขึ้นรถ':'var(--info)','คืนของ':'var(--ok)','คืนจากงาน':'var(--ok)'};
-  var html='<div class="metrics m3" style="margin-bottom:12px;">'
-    +'<div class="metric"><div class="metric-lbl">เบิกรวม</div><div class="metric-val c-info" style="font-size:22px;">'+totalW+'</div></div>'
-    +'<div class="metric"><div class="metric-lbl">ใช้รวม</div><div class="metric-val c-warn" style="font-size:22px;">'+totalUsed+'</div></div>'
-    +'<div class="metric"><div class="metric-lbl">คืนรวม</div><div class="metric-val c-ok" style="font-size:22px;">'+totalR+'</div></div>'
-    +'</div><div class="card">';
-  filtered.forEach(function(l){
-    var color=colors[l.type]||'var(--text2)';
-    html+='<div style="border-bottom:1px solid var(--border);padding:10px 0;display:flex;gap:10px;">'
-      +'<div style="width:8px;height:8px;border-radius:50%;background:'+color+';flex-shrink:0;margin-top:5px;"></div>'
-      +'<div style="flex:1;"><div style="display:flex;align-items:center;gap:6px;margin-bottom:3px;">'
-      +'<span style="font-size:10px;padding:2px 6px;border-radius:4px;background:rgba(255,255,255,0.07);color:'+color+';">'+l.type+'</span>'
-      +'<span style="font-size:11px;color:var(--text2);">'+fmtTime(l.timestamp)+'</span></div>'
-      +'<div style="font-size:13px;font-weight:500;">'+Number(l.qty)+' '+unitTH(l.unit)+(l.location?' — '+l.location:'')+'</div>'
-      +(l.shift?'<div style="font-size:11px;color:var(--text2);">'+l.shift+(l.jobId?' | '+l.jobId:'')+'</div>':'')
-      +'</div></div>';
-  });
-  html+='</div>';
-  list.innerHTML=html;
+    if (!err) logs = data || logs;
+    showHistory();
   });
 }
 // INIT
