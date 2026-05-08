@@ -1125,14 +1125,20 @@ function renderDash() {
   jobs.forEach(function(l){
     var ts=String(l.timestamp||'');
     var day='';
-    if(ts.indexOf('T')>0) day=fmtTime(ts).split(' ')[0];
-    else if(ts.indexOf('/')>0) day=ts.split(' ')[0];
+    if(ts.indexOf('T')>0){
+      var p=ts.split('T')[0].split('-');
+      if(p.length===3){var yr=parseInt(p[0]);if(yr<2500)yr+=543;day=p[2]+'/'+p[1]+'/'+yr;}
+    } else if(ts.indexOf('/')>0){
+      day=ts.split(' ')[0];
+    }
     if(day){if(!dayMap[day])dayMap[day]=0;dayMap[day]++;}
   });
   var days=Object.keys(dayMap).sort();
+  var chartDailyWrap=document.getElementById('chartDaily');
+  if(!chartDailyWrap||!chartDailyWrap.parentElement) return;
+  if(window._chartDaily){window._chartDaily.destroy();window._chartDaily=null;}
+  chartDailyWrap.parentElement.innerHTML='<div style="position:relative;height:180px;"><canvas id="chartDaily"></canvas></div>';
   var chartDailyEl=document.getElementById('chartDaily');
-  if(!chartDailyEl) return;
-  if(window._chartDaily) { window._chartDaily.destroy(); window._chartDaily=null; }
   if(days.length){
     window._chartDaily=new Chart(chartDailyEl,{
       type:'bar',
@@ -1164,9 +1170,11 @@ function renderDash() {
   });
 
   // กราฟวงกลม
+  var chartPieWrap=document.getElementById('chartPie');
+  if(!chartPieWrap||!chartPieWrap.parentElement) return;
+  if(window._chartPie){window._chartPie.destroy();window._chartPie=null;}
+  chartPieWrap.parentElement.innerHTML='<div style="position:relative;height:200px;"><canvas id="chartPie"></canvas></div>';
   var chartPieEl=document.getElementById('chartPie');
-  if(!chartPieEl) return;
-  if(window._chartPie) { window._chartPie.destroy(); window._chartPie=null; }
   if(sorted.length){
     window._chartPie=new Chart(chartPieEl,{
       type:'doughnut',
