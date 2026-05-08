@@ -1048,7 +1048,7 @@ function printJob(key) {
     +'<div class="sign-box">ผู้เบิก<br><br>..............................<br>( ........................... )</div>'
     +'<div class="sign-box">ผู้อนุมัติ<br><br>..............................<br>( ........................... )</div>'
     +'</div>'
-    +'<div class="no-print"><button onclick="window.print()" style="padding:8px 24px;background:#1a73e8;color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:13px;">🖨️ พิมพ์</button></div>'
+    +'<div class="no-print" style="display:flex;gap:8px;justify-content:center;"><button onclick="window.close()" style="padding:8px 24px;background:#555;color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:13px;">← กลับ</button><button onclick="window.print()" style="padding:8px 24px;background:#1a73e8;color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:13px;">🖨️ พิมพ์</button></div>'
     +'</body></html>';
   win.document.write(html);
   win.document.close();
