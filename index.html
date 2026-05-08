@@ -1189,19 +1189,26 @@ function showSubTab(tab) {
 }
 function renderItemSelectList(){
   var sel=document.getElementById('itemSelect');
-  if(sel.options.length>1) return;
-  var items={};
-  logs.forEach(function(l){if(l.code) items[l.code]=l.name;});
-  Object.entries(items).sort(function(a,b){return a[1].localeCompare(b[1],'th');}).forEach(function(e){
-    var opt=document.createElement('option');
-    opt.value=e[0]; opt.textContent=e[0]+' — '+e[1]; sel.appendChild(opt);
+  sel.innerHTML='<option value="">กำลังโหลด...</option>';
+  apiGet('getLogs', function(err, data){
+    logs = data || logs;
+    sel.innerHTML='<option value="">— เลือกรายการพัสดุ —</option>';
+    var items={};
+    logs.forEach(function(l){if(l.code) items[l.code]=l.name;});
+    Object.entries(items).sort(function(a,b){return a[1].localeCompare(b[1],'th');}).forEach(function(e){
+      var opt=document.createElement('option');
+      opt.value=e[0]; opt.textContent=e[0]+' — '+e[1]; sel.appendChild(opt);
+    });
   });
 }
 function renderItemHistory(){
   var code=document.getElementById('itemSelect').value;
   var list=document.getElementById('itemHistoryList');
   if(!code){list.innerHTML='';return;}
-  var filtered=logs.filter(function(l){return l.code===code;}).slice().reverse();
+  list.innerHTML='<div class="loading"><div class="spinner"></div><div>กำลังโหลด...</div></div>';
+  apiGet('getLogs', function(err, data){
+    logs = data || logs;
+    var filtered=logs.filter(function(l){return String(l.code)===String(code);}).slice().reverse();
   if(!filtered.length){list.innerHTML='<div class="empty">ไม่พบประวัติ</div>';return;}
   var totalUsed=filtered.filter(function(l){return l.type==='งานแก้ไฟ';}).reduce(function(s,l){return s+Number(l.qty);},0);
   var totalW=filtered.filter(function(l){return l.type==='เบิกของ'||l.type==='เบิกขึ้นรถ';}).reduce(function(s,l){return s+Number(l.qty);},0);
@@ -1225,6 +1232,7 @@ function renderItemHistory(){
   });
   html+='</div>';
   list.innerHTML=html;
+  });
 }
 // INIT
 var now=new Date();
