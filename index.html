@@ -1131,7 +1131,8 @@ function renderDash() {
   });
   var days=Object.keys(dayMap).sort();
   var chartDailyEl=document.getElementById('chartDaily');
-  if(window._chartDaily) window._chartDaily.destroy();
+  if(!chartDailyEl) return;
+  if(window._chartDaily) { window._chartDaily.destroy(); window._chartDaily=null; }
   if(days.length){
     window._chartDaily=new Chart(chartDailyEl,{
       type:'bar',
@@ -1164,7 +1165,8 @@ function renderDash() {
 
   // กราฟวงกลม
   var chartPieEl=document.getElementById('chartPie');
-  if(window._chartPie) window._chartPie.destroy();
+  if(!chartPieEl) return;
+  if(window._chartPie) { window._chartPie.destroy(); window._chartPie=null; }
   if(sorted.length){
     window._chartPie=new Chart(chartPieEl,{
       type:'doughnut',
