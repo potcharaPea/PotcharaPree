@@ -511,6 +511,22 @@ function buildCatSection(container, items, openMap, src, showStatus) {
         be.textContent = empCnt + ' หมด';
         left.appendChild(be);
       }
+    } else {
+      // รถแก้ไฟ — แสดง badge เตือนเหมือนคลัง
+      var trLowCnt = rows.filter(function(i){ return Number(i.qty)>0 && Number(i.qty)<=3; }).length;
+      var trEmpCnt = rows.filter(function(i){ return Number(i.qty)<=0; }).length;
+      if (trLowCnt) {
+        var trbl = document.createElement('span');
+        trbl.className = 'badge b-low';
+        trbl.textContent = trLowCnt + ' ใกล้หมด';
+        left.appendChild(trbl);
+      }
+      if (trEmpCnt) {
+        var trbe = document.createElement('span');
+        trbe.className = 'badge b-empty';
+        trbe.textContent = trEmpCnt + ' หมด';
+        left.appendChild(trbe);
+      }
     }
 
     var arrow = document.createElement('span');
@@ -562,10 +578,18 @@ function buildCatSection(container, items, openMap, src, showStatus) {
           iRight.appendChild(editBtn);
         } else {
           var q2 = Number(item.qty);
+          // badge จำนวน
           var bdg2 = document.createElement('span');
-          bdg2.className = 'badge ' + (q2>0 ? 'b-info' : 'b-empty');
-          bdg2.textContent = q2>0 ? q2+' '+unitTH(item.unit) : 'ว่าง';
+          bdg2.className = 'badge ' + (q2<=0 ? 'b-empty' : q2<=3 ? 'b-low' : 'b-info');
+          bdg2.textContent = q2<=0 ? 'ว่าง' : q2+' '+unitTH(item.unit);
           iRight.appendChild(bdg2);
+          // badge สถานะ (เฉพาะใกล้หมด/หมด)
+          if (q2<=3) {
+            var bdg2s = document.createElement('span');
+            bdg2s.className = 'badge ' + (q2<=0 ? 'b-empty' : 'b-low');
+            bdg2s.textContent = q2<=0 ? 'หมด' : 'ใกล้หมด';
+            iRight.appendChild(bdg2s);
+          }
         }
 
         row.appendChild(iLeft);
