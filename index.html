@@ -297,7 +297,7 @@ select.fi option{background:var(--bg2);}
     </div>
     <div class="card">
       <div class="card-title">📅 งานแก้ไฟรายวัน</div>
-      <div style="position:relative;height:180px;"><canvas id="chartDaily"></canvas></div>
+      <div id="chartDailyWrap"><div style="position:relative;height:180px;"><canvas id="chartDaily"></canvas></div></div>
     </div>
     <div class="card">
       <div class="card-title">🔧 อุปกรณ์ที่ใช้บ่อยสุด</div>
@@ -309,7 +309,7 @@ select.fi option{background:var(--bg2);}
     </div>
     <div class="card">
       <div class="card-title">🥧 สัดส่วนอุปกรณ์ที่ใช้</div>
-      <div style="position:relative;height:200px;"><canvas id="chartPie"></canvas></div>
+      <div id="chartPieWrap"><div style="position:relative;height:200px;"><canvas id="chartPie"></canvas></div></div>
     </div>
   </div><!-- end sub-d -->
 
@@ -1031,6 +1031,43 @@ function renderRptList() {
   });
 }
 
+// DELETE JOB
+function deleteJob(key) {
+  var g = _jobStore[key];
+  if (!g) { showMsg('ไม่พบข้อมูลใบงาน', false); return; }
+  var jobId = key.indexOf('JOB-')===0 ? key : '';
+  if (!jobId) { showMsg('ลบได้เฉพาะใบงานแก้ไฟเท่านั้น', false); return; }
+  // ยืนยันชั้นที่ 1
+  showConfirm('ต้องการลบใบงานนี้ใช่ไหม?',
+    'จุด: <b>'+g.location+'</b><br>วันที่: <b>'+fmtTime(g.timestamp)+'</b><br><br>ของทุกรายการจะกลับไปอยู่บนรถเหมือนเดิม',
+    function(){
+      // ยืนยันชั้นที่ 2
+      showConfirm('⚠️ ยืนยันอีกครั้ง',
+        'การลบไม่สามารถย้อนกลับได้!<br><br>กด <b>ยืนยัน</b> เพื่อลบใบงานนี้',
+        function(){
+          showMsg('กำลังลบใบงาน...', 'info');
+          apiPost({action:'deleteJob', jobId:jobId, items:g.items}, function(err,res){
+            if (err||!res||!res.success) { showMsg('เกิดข้อผิดพลาด: '+(res&&res.error||'ไม่สามารถลบได้'), false); return; }
+            // คืนของกลับรถ
+            g.items.forEach(function(item){
+              var t=tr.find(function(i){return i.code===item.code;});
+              if(t) t.qty=Number(t.qty)+Number(item.qty);
+            });
+            // ลบออกจาก local state
+            delete _jobStore[key];
+            delete _rptGroups[key];
+            var idx=_rptOrder.indexOf(key);
+            if(idx>-1) _rptOrder.splice(idx,1);
+            logs=logs.filter(function(l){return l.jobId!==key;});
+            showMsg('ลบใบงานสำเร็จ ของกลับรถแล้ว', true);
+            renderRptList();
+          });
+        }
+      );
+    }
+  );
+}
+
 // PRINT
 function printJob(key) {
   var g=_jobStore[key]; if (!g) { alert('ไม่พบข้อมูล'); return; }
@@ -1120,8 +1157,9 @@ function renderDash() {
     });
   }
 
-  // กราฟรายวัน
+  // กราฟรายวัน (นับ unique jobId ต่อวัน)
   var dayMap={};
+  var dayJobMap={}; // เก็บ jobId ที่นับแล้วในแต่ละวัน
   jobs.forEach(function(l){
     var ts=String(l.timestamp||'');
     var day='';
@@ -1131,15 +1169,27 @@ function renderDash() {
     } else if(ts.indexOf('/')>0){
       day=ts.split(' ')[0];
     }
-    if(day){if(!dayMap[day])dayMap[day]=0;dayMap[day]++;}
+    if(day){
+      if(!dayMap[day])dayMap[day]=0;
+      if(!dayJobMap[day])dayJobMap[day]=[];
+      // ถ้ามี jobId ให้นับ unique jobId, ถ้าไม่มีให้นับทุก row
+      if(l.jobId){
+        if(dayJobMap[day].indexOf(l.jobId)<0){
+          dayJobMap[day].push(l.jobId);
+          dayMap[day]++;
+        }
+      } else {
+        dayMap[day]++;
+      }
+    }
   });
   var days=Object.keys(dayMap).sort();
-  var chartDailyWrap=document.getElementById('chartDaily');
-  if(!chartDailyWrap||!chartDailyWrap.parentElement) return;
+  var chartDailyWrap=document.getElementById('chartDailyWrap');
+  if(!chartDailyWrap) return;
   if(window._chartDaily){window._chartDaily.destroy();window._chartDaily=null;}
-  chartDailyWrap.parentElement.innerHTML='<div style="position:relative;height:180px;"><canvas id="chartDaily"></canvas></div>';
-  var chartDailyEl=document.getElementById('chartDaily');
   if(days.length){
+    chartDailyWrap.innerHTML='<div style="position:relative;height:180px;"><canvas id="chartDaily"></canvas></div>';
+    var chartDailyEl=document.getElementById('chartDaily');
     window._chartDaily=new Chart(chartDailyEl,{
       type:'bar',
       data:{labels:days.map(function(d){return d.substring(0,5);}),
@@ -1148,7 +1198,9 @@ function renderDash() {
         scales:{y:{beginAtZero:true,ticks:{stepSize:1,color:'#8b8fa8'},grid:{color:'#2a2d3e'}},
           x:{ticks:{color:'#8b8fa8'},grid:{display:false}}}}
     });
-  } else if(chartDailyEl&&chartDailyEl.parentElement) { chartDailyEl.parentElement.innerHTML='<div class="empty">ไม่มีข้อมูล</div>'; }
+  } else {
+    chartDailyWrap.innerHTML='<div class="empty">ไม่มีข้อมูล</div>';
+  }
 
   // เปรียบเทียบกะ
   var shiftMap={'กะเช้า':0,'กะบ่าย':0,'กะดึก':0};
@@ -1170,12 +1222,12 @@ function renderDash() {
   });
 
   // กราฟวงกลม
-  var chartPieWrap=document.getElementById('chartPie');
-  if(!chartPieWrap||!chartPieWrap.parentElement) return;
+  var chartPieWrap=document.getElementById('chartPieWrap');
+  if(!chartPieWrap) return;
   if(window._chartPie){window._chartPie.destroy();window._chartPie=null;}
-  chartPieWrap.parentElement.innerHTML='<div style="position:relative;height:200px;"><canvas id="chartPie"></canvas></div>';
-  var chartPieEl=document.getElementById('chartPie');
   if(sorted.length){
+    chartPieWrap.innerHTML='<div style="position:relative;height:200px;"><canvas id="chartPie"></canvas></div>';
+    var chartPieEl=document.getElementById('chartPie');
     window._chartPie=new Chart(chartPieEl,{
       type:'doughnut',
       data:{labels:sorted.map(function(i){return i.name.substring(0,25);}),
@@ -1184,7 +1236,9 @@ function renderDash() {
       options:{responsive:true,maintainAspectRatio:false,
         plugins:{legend:{position:'bottom',labels:{color:'#8b8fa8',font:{size:10},boxWidth:12}}}}
     });
-  } else if(chartPieEl&&chartPieEl.parentElement) { chartPieEl.parentElement.innerHTML='<div class="empty">ไม่มีข้อมูล</div>'; }
+  } else {
+    chartPieWrap.innerHTML='<div class="empty">ไม่มีข้อมูล</div>';
+  }
 }
 
 function showSubTab(tab) {
