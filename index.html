@@ -8,6 +8,7 @@
 <meta name="theme-color" content="#f59e0b">
 <link rel="manifest" href="manifest.json">
 <title>คลังแก้ไฟ กฟส.คำชะอี</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
@@ -128,11 +129,11 @@ select.fi option{background:var(--bg2);}
 <div class="hdr">
   <div>
     <div class="hdr-title">คลังแก้ไฟ กฟส.คำชะอี</div>
-    <div class="hdr-sub">PEA INVENTORY v0.12</div>
+    <div class="hdr-sub">PEA INVENTORY v0.13</div>
   </div>
   <div style="display:flex;align-items:center;gap:8px;">
     <button class="sync-btn" onclick="syncAll()">↻ Sync</button>
-    <div class="ver">v0.12</div>
+    <div class="ver">v0.13</div>
   </div>
 </div>
 
@@ -142,7 +143,6 @@ select.fi option{background:var(--bg2);}
   <button class="nav-btn" onclick="nav('k',this)">คืนของ</button>
   <button class="nav-btn" onclick="nav('u',this)">งานแก้ไฟ</button>
   <button class="nav-btn" onclick="nav('r',this)">Report</button>
-  <button class="nav-btn" onclick="nav('d',this)">Dashboard</button>
 </div>
 
 <div class="content">
@@ -261,47 +261,65 @@ select.fi option{background:var(--bg2);}
 
 <!-- Report -->
 <div id="pr" style="display:none;">
+  <div style="display:flex;margin:-16px -16px 16px;border-bottom:1px solid var(--border);background:var(--bg2);">
+    <button id="stab-r" onclick="showSubTab('r')" style="flex:1;padding:10px;font-size:12px;font-weight:600;border:none;background:none;color:var(--accent);border-bottom:2px solid var(--accent);cursor:pointer;font-family:inherit;">📋 รายการ</button>
+    <button id="stab-d" onclick="showSubTab('d')" style="flex:1;padding:10px;font-size:12px;font-weight:600;border:none;background:none;color:var(--text2);border-bottom:2px solid transparent;cursor:pointer;font-family:inherit;">📊 Dashboard</button>
+    <button id="stab-h" onclick="showSubTab('h')" style="flex:1;padding:10px;font-size:12px;font-weight:600;border:none;background:none;color:var(--text2);border-bottom:2px solid transparent;cursor:pointer;font-family:inherit;">🕐 ประวัติ</button>
+  </div>
+  <div id="sub-r">
   <div class="metrics m3">
     <div class="metric click" id="rf-all" onclick="filterRpt('all')"><div class="metric-lbl">ทั้งหมด</div><div class="metric-val c-ok" id="rc0">—</div></div>
     <div class="metric click" id="rf-w" onclick="filterRpt('เบิกขึ้นรถ')"><div class="metric-lbl">เบิกขึ้นรถ</div><div class="metric-val c-info" id="rc1">—</div></div>
     <div class="metric click" id="rf-u" onclick="filterRpt('งานแก้ไฟ')"><div class="metric-lbl">งานแก้ไฟ</div><div class="metric-val c-warn" id="rc2">—</div></div>
   </div>
   <div id="rlist"><div class="loading"><div class="spinner"></div><div>กำลังโหลด...</div></div></div>
-</div>
+  </div><!-- end sub-r -->
 
-<!-- Dashboard -->
-<div id="pd" style="display:none;">
-  <div style="font-size:15px;font-weight:600;margin-bottom:14px;">📊 Dashboard สรุปรายเดือน</div>
-  <div class="fg"><label class="fl">เลือกเดือน</label>
-  <div style="display:flex;gap:8px;">
-    <select id="dash-mn" class="fi" onchange="renderDash()" style="flex:1;">
-      <option value="1">มกราคม</option><option value="2">กุมภาพันธ์</option>
-      <option value="3">มีนาคม</option><option value="4">เมษายน</option>
-      <option value="5">พฤษภาคม</option><option value="6">มิถุนายน</option>
-      <option value="7">กรกฎาคม</option><option value="8">สิงหาคม</option>
-      <option value="9">กันยายน</option><option value="10">ตุลาคม</option>
-      <option value="11">พฤศจิกายน</option><option value="12">ธันวาคม</option>
+  <div id="sub-d" style="display:none;">
+    <div style="display:flex;gap:8px;margin-bottom:12px;">
+      <select id="dash-mn" class="fi" onchange="renderDash()" style="flex:1;">
+        <option value="1">มกราคม</option><option value="2">กุมภาพันธ์</option>
+        <option value="3">มีนาคม</option><option value="4">เมษายน</option>
+        <option value="5">พฤษภาคม</option><option value="6">มิถุนายน</option>
+        <option value="7">กรกฎาคม</option><option value="8">สิงหาคม</option>
+        <option value="9">กันยายน</option><option value="10">ตุลาคม</option>
+        <option value="11">พฤศจิกายน</option><option value="12">ธันวาคม</option>
+      </select>
+      <select id="dash-yr" class="fi" onchange="renderDash()" style="width:100px;"></select>
+    </div>
+    <div class="metrics m2" style="margin-bottom:10px;">
+      <div class="metric"><div class="metric-lbl">งานแก้ไฟ</div><div class="metric-val c-warn" id="d-jobs">—</div></div>
+      <div class="metric"><div class="metric-lbl">รายการเบิก</div><div class="metric-val c-info" id="d-withdraws">—</div></div>
+    </div>
+    <div class="metrics m2" style="margin-bottom:10px;">
+      <div class="metric"><div class="metric-lbl">อุปกรณ์ที่ใช้</div><div class="metric-val c-ok" id="d-items">—</div></div>
+      <div class="metric"><div class="metric-lbl">จุดแก้ไฟ</div><div class="metric-val c-danger" id="d-locations">—</div></div>
+    </div>
+    <div class="card">
+      <div class="card-title">📅 งานแก้ไฟรายวัน</div>
+      <div style="position:relative;height:180px;"><canvas id="chartDaily"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-title">🔧 อุปกรณ์ที่ใช้บ่อยสุด</div>
+      <div id="d-top"><div class="empty">เลือกเดือนก่อนครับ</div></div>
+    </div>
+    <div class="card">
+      <div class="card-title">🕐 เปรียบเทียบงานแต่ละกะ</div>
+      <div id="d-shift"><div class="empty">เลือกเดือนก่อนครับ</div></div>
+    </div>
+    <div class="card">
+      <div class="card-title">🥧 สัดส่วนอุปกรณ์ที่ใช้</div>
+      <div style="position:relative;height:200px;"><canvas id="chartPie"></canvas></div>
+    </div>
+  </div><!-- end sub-d -->
+
+  <div id="sub-h" style="display:none;">
+    <select id="itemSelect" onchange="renderItemHistory()" style="width:100%;padding:9px 12px;background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:13px;font-family:inherit;outline:none;margin-bottom:12px;">
+      <option value="">— เลือกรายการพัสดุ —</option>
     </select>
-    <select id="dash-yr" class="fi" onchange="renderDash()" style="width:100px;"></select>
-  </div>
-</div>
-  <div class="metrics m2" style="margin-top:10px;">
-    <div class="metric"><div class="metric-lbl">งานแก้ไฟ</div><div class="metric-val c-warn" id="d-jobs">—</div></div>
-    <div class="metric"><div class="metric-lbl">รายการเบิก</div><div class="metric-val c-info" id="d-withdraws">—</div></div>
-  </div>
-  <div class="metrics m2">
-    <div class="metric"><div class="metric-lbl">อุปกรณ์ที่ใช้</div><div class="metric-val c-ok" id="d-items">—</div></div>
-    <div class="metric"><div class="metric-lbl">จุดแก้ไฟ</div><div class="metric-val c-danger" id="d-locations">—</div></div>
-  </div>
-  <div class="card" style="margin-top:10px;">
-    <div class="card-title">อุปกรณ์ที่ใช้บ่อยสุด</div>
-    <div id="d-top"><div class="empty">เลือกเดือนก่อนครับ</div></div>
-  </div>
-  <div class="card">
-    <div class="card-title">งานแก้ไฟรายวัน</div>
-    <div id="d-daily"><div class="empty">เลือกเดือนก่อนครับ</div></div>
-  </div>
-</div>
+    <div id="itemHistoryList"></div>
+  </div><!-- end sub-h -->
+</div><!-- end pr -->
 
 </div>
 </div>
@@ -421,8 +439,7 @@ function nav(p, el) {
   if (p==='t') renderTr();
   if (p==='k') { initKCat(); filterK(); }
   if (p==='u') { initUCat(); filterU(); }
-  if (p==='r') renderReport();
-  if (p==='d') renderDash();
+  if (p==='r') { renderReport(); showSubTab('r'); }
 }
 function subTab(id, el) {
   document.getElementById('swh').style.display = 'none';
@@ -1063,13 +1080,11 @@ function renderDash() {
     var ts=String(l.timestamp||'');
     var yr=-1, mn=-1;
     if (ts.indexOf('T')>0) {
-      // ISO format: 2569-05-07T... (ปี พ.ศ.)
       var p=ts.split('T')[0].split('-');
-      if (p.length===3) { yr=parseInt(p[0]); if(yr<2500) yr=yr+543; mn=parseInt(p[1]); }
+      if (p.length===3) { yr=parseInt(p[0]); if(yr<2500) yr+=543; mn=parseInt(p[1]); }
     } else if (ts.indexOf('/')>0) {
-      // dd/MM/yyyy format
       var p2=ts.split(' ')[0].split('/');
-      if (p2.length===3) { yr=parseInt(p2[2]); if(yr<2500) yr=yr+543; mn=parseInt(p2[1]); }
+      if (p2.length===3) { yr=parseInt(p2[2]); if(yr<2500) yr+=543; mn=parseInt(p2[1]); }
     }
     return yr===selYr && mn===selMn;
   });
@@ -1081,101 +1096,136 @@ function renderDash() {
   jobs.forEach(function(l){if(l.jobId&&jobIds.indexOf(l.jobId)<0)jobIds.push(l.jobId);});
   document.getElementById('d-jobs').textContent=jobIds.length;
   document.getElementById('d-withdraws').textContent=withdraws.length;
-  document.getElementById('d-items').textContent=jobs.length;
+  document.getElementById('d-items').textContent=jobs.reduce(function(s,l){return s+Number(l.qty);},0);
   document.getElementById('d-locations').textContent=locations.length;
 
+  // อุปกรณ์บ่อย
   var itemMap={};
-  jobs.forEach(function(l){ var k=l.name; if(!itemMap[k])itemMap[k]={name:k,unit:l.unit,qty:0}; itemMap[k].qty+=Number(l.qty)||0; });
-  var sorted=Object.values(itemMap).sort(function(a,b){return b.qty-a.qty;}).slice(0,10);
+  jobs.forEach(function(l){var k=l.name;if(!itemMap[k])itemMap[k]={name:k,unit:l.unit,qty:0};itemMap[k].qty+=Number(l.qty)||0;});
+  var sorted=Object.values(itemMap).sort(function(a,b){return b.qty-a.qty;}).slice(0,8);
   var topEl=document.getElementById('d-top');
   topEl.innerHTML='';
-  if (!sorted.length) { topEl.innerHTML='<div class="empty">ไม่มีข้อมูล</div>'; }
-  else sorted.forEach(function(i,idx){
-    var d=document.createElement('div');
-    d.style.cssText='display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px;';
-    d.innerHTML='<span style="color:var(--text2);">'+(idx+1)+'. '+i.name+'</span><span style="color:var(--accent);font-family:monospace;font-weight:500;">'+i.qty+' '+unitTH(i.unit)+'</span>';
-    topEl.appendChild(d);
-  });
+  if(!sorted.length){topEl.innerHTML='<div class="empty">ไม่มีข้อมูล</div>';}
+  else {
+    var maxQ=sorted[0].qty||1;
+    sorted.forEach(function(i,idx){
+      var d=document.createElement('div');
+      d.style.cssText='margin-bottom:8px;';
+      d.innerHTML='<div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px;">'
+        +'<span style="color:var(--text2);">'+(idx+1)+'. '+i.name+'</span>'
+        +'<span style="color:var(--accent);font-weight:600;">'+i.qty+' '+unitTH(i.unit)+'</span></div>'
+        +'<div style="background:var(--bg3);border-radius:4px;height:6px;overflow:hidden;">'
+        +'<div style="width:'+(i.qty/maxQ*100)+'%;height:100%;background:var(--accent);border-radius:4px;"></div></div>';
+      topEl.appendChild(d);
+    });
+  }
 
+  // กราฟรายวัน
   var dayMap={};
   jobs.forEach(function(l){
     var ts=String(l.timestamp||'');
-    var day=ts;
+    var day='';
     if(ts.indexOf('T')>0) day=fmtTime(ts).split(' ')[0];
     else if(ts.indexOf('/')>0) day=ts.split(' ')[0];
-    if(!dayMap[day])dayMap[day]=0;dayMap[day]++;
+    if(day){if(!dayMap[day])dayMap[day]=0;dayMap[day]++;}
   });
   var days=Object.keys(dayMap).sort();
-  var maxCnt=days.reduce(function(m,d){return Math.max(m,dayMap[d]);},0)||1;
-  var dailyEl=document.getElementById('d-daily');
-  dailyEl.innerHTML='';
-  if (!days.length) { dailyEl.innerHTML='<div class="empty">ไม่มีข้อมูล</div>'; }
-  else days.forEach(function(d){
-    var cnt=dayMap[d];
-    var dDiv=document.createElement('div');
-    dDiv.style.cssText='padding:6px 0;border-bottom:1px solid var(--border);';
-    var row=document.createElement('div');
-    row.style.cssText='display:flex;justify-content:space-between;font-size:12px;';
-    row.innerHTML='<span style="color:var(--text2);">'+d+'</span><span style="color:var(--accent);">'+cnt+' รายการ</span>';
-    var bar=document.createElement('div');
-    bar.className='dash-bar';
-    bar.style.width=Math.round(cnt/maxCnt*100)+'%';
-    dDiv.appendChild(row); dDiv.appendChild(bar);
-    dailyEl.appendChild(dDiv);
+  var chartDailyEl=document.getElementById('chartDaily');
+  if(window._chartDaily) window._chartDaily.destroy();
+  if(days.length){
+    window._chartDaily=new Chart(chartDailyEl,{
+      type:'bar',
+      data:{labels:days.map(function(d){return d.substring(0,5);}),
+        datasets:[{label:'งาน',data:days.map(function(d){return dayMap[d];}),backgroundColor:'rgba(245,158,11,0.7)',borderRadius:6}]},
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
+        scales:{y:{beginAtZero:true,ticks:{stepSize:1,color:'#8b8fa8'},grid:{color:'#2a2d3e'}},
+          x:{ticks:{color:'#8b8fa8'},grid:{display:false}}}}
+    });
+  } else if(chartDailyEl&&chartDailyEl.parentElement) { chartDailyEl.parentElement.innerHTML='<div class="empty">ไม่มีข้อมูล</div>'; }
+
+  // เปรียบเทียบกะ
+  var shiftMap={'กะเช้า':0,'กะบ่าย':0,'กะดึก':0};
+  jobIds.forEach(function(jid){
+    var j=jobs.find(function(l){return l.jobId===jid;});
+    if(j&&shiftMap[j.shift]!==undefined) shiftMap[j.shift]++;
+  });
+  var maxS=Math.max.apply(null,Object.values(shiftMap))||1;
+  var shiftColors={'กะเช้า':'#f59e0b','กะบ่าย':'#3b82f6','กะดึก':'#8b5cf6'};
+  var shiftEl=document.getElementById('d-shift');
+  shiftEl.innerHTML='';
+  Object.entries(shiftMap).forEach(function(s){
+    var d=document.createElement('div');
+    d.style.cssText='display:flex;align-items:center;gap:8px;margin-bottom:10px;';
+    d.innerHTML='<div style="width:60px;font-size:11px;color:var(--text2);">'+s[0]+'</div>'
+      +'<div style="flex:1;background:var(--bg3);border-radius:4px;height:22px;overflow:hidden;">'
+      +'<div style="width:'+(s[1]/maxS*100)+'%;height:100%;background:'+shiftColors[s[0]]+';display:flex;align-items:center;padding-left:8px;font-size:11px;font-weight:600;color:#000;">'+(s[1]?s[1]+' งาน':'')+'</div></div>';
+    shiftEl.appendChild(d);
+  });
+
+  // กราฟวงกลม
+  var chartPieEl=document.getElementById('chartPie');
+  if(window._chartPie) window._chartPie.destroy();
+  if(sorted.length){
+    window._chartPie=new Chart(chartPieEl,{
+      type:'doughnut',
+      data:{labels:sorted.map(function(i){return i.name.substring(0,25);}),
+        datasets:[{data:sorted.map(function(i){return i.qty;}),
+          backgroundColor:['#f59e0b','#3b82f6','#10b981','#ef4444','#8b5cf6','#06b6d4','#f97316','#ec4899'],borderWidth:0}]},
+      options:{responsive:true,maintainAspectRatio:false,
+        plugins:{legend:{position:'bottom',labels:{color:'#8b8fa8',font:{size:10},boxWidth:12}}}}
+    });
+  } else if(chartPieEl&&chartPieEl.parentElement) { chartPieEl.parentElement.innerHTML='<div class="empty">ไม่มีข้อมูล</div>'; }
+}
+
+function showSubTab(tab) {
+  ['r','d','h'].forEach(function(t){
+    var el=document.getElementById('sub-'+t);
+    var btn=document.getElementById('stab-'+t);
+    if(el) el.style.display=t===tab?'block':'none';
+    if(btn){btn.style.color=t===tab?'var(--accent)':'var(--text2)';btn.style.borderBottom=t===tab?'2px solid var(--accent)':'2px solid transparent';}
+  });
+  if(tab==='d') renderDash();
+  if(tab==='h') renderItemSelectList();
+}
+function renderItemSelectList(){
+  var sel=document.getElementById('itemSelect');
+  if(sel.options.length>1) return;
+  var items={};
+  logs.forEach(function(l){if(l.code) items[l.code]=l.name;});
+  Object.entries(items).sort(function(a,b){return a[1].localeCompare(b[1],'th');}).forEach(function(e){
+    var opt=document.createElement('option');
+    opt.value=e[0]; opt.textContent=e[0]+' — '+e[1]; sel.appendChild(opt);
   });
 }
-
-// DELETE JOB
-function deleteJob(key) {
-  var g = _jobStore[key];
-  if (!g) return;
-  var jobId = key.indexOf('JOB-')===0 ? key : '';
-  if (!jobId) { showMsg('ลบได้เฉพาะใบงานแก้ไฟเท่านั้น', false); return; }
-  // ยืนยันชั้นที่ 1
-  showConfirm('ต้องการลบใบงานนี้ใช่ไหม?',
-    'จุด: <b>'+g.location+'</b><br>วันที่: <b>'+fmtTime(g.timestamp)+'</b><br><br>ของทุกรายการจะกลับไปอยู่บนรถเหมือนเดิม',
-    function(){
-      // ยืนยันชั้นที่ 2
-      showConfirm('⚠️ ยืนยันอีกครั้ง',
-        'การลบไม่สามารถย้อนกลับได้!<br><br>กด <b>ยืนยัน</b> เพื่อลบใบงานนี้',
-        function(){
-          showMsg('กำลังลบใบงาน...', 'info');
-          apiPost({action:'deleteJob', jobId:jobId}, function(err,res){
-            if (err||!res.success) { showMsg('เกิดข้อผิดพลาด: '+(res&&res.error||''), false); return; }
-            // อัปเดต tr ในหน้าจอ
-            g.items.forEach(function(item){
-              var t=tr.find(function(i){return i.code===item.code;}); 
-              if(t) t.qty=Number(t.qty)+Number(item.qty);
-            });
-            showMsg('ลบใบงานสำเร็จ ของกลับรถแล้ว', true);
-            renderReport();
-          });
-        }
-      );
-    }
-  );
+function renderItemHistory(){
+  var code=document.getElementById('itemSelect').value;
+  var list=document.getElementById('itemHistoryList');
+  if(!code){list.innerHTML='';return;}
+  var filtered=logs.filter(function(l){return l.code===code;}).slice().reverse();
+  if(!filtered.length){list.innerHTML='<div class="empty">ไม่พบประวัติ</div>';return;}
+  var totalUsed=filtered.filter(function(l){return l.type==='งานแก้ไฟ';}).reduce(function(s,l){return s+Number(l.qty);},0);
+  var totalW=filtered.filter(function(l){return l.type==='เบิกของ'||l.type==='เบิกขึ้นรถ';}).reduce(function(s,l){return s+Number(l.qty);},0);
+  var totalR=filtered.filter(function(l){return l.type==='คืนของ'||l.type==='คืนจากงาน';}).reduce(function(s,l){return s+Number(l.qty);},0);
+  var colors={'งานแก้ไฟ':'var(--warn)','เบิกของ':'var(--info)','เบิกขึ้นรถ':'var(--info)','คืนของ':'var(--ok)','คืนจากงาน':'var(--ok)'};
+  var html='<div class="metrics m3" style="margin-bottom:12px;">'
+    +'<div class="metric"><div class="metric-lbl">เบิกรวม</div><div class="metric-val c-info" style="font-size:22px;">'+totalW+'</div></div>'
+    +'<div class="metric"><div class="metric-lbl">ใช้รวม</div><div class="metric-val c-warn" style="font-size:22px;">'+totalUsed+'</div></div>'
+    +'<div class="metric"><div class="metric-lbl">คืนรวม</div><div class="metric-val c-ok" style="font-size:22px;">'+totalR+'</div></div>'
+    +'</div><div class="card">';
+  filtered.forEach(function(l){
+    var color=colors[l.type]||'var(--text2)';
+    html+='<div style="border-bottom:1px solid var(--border);padding:10px 0;display:flex;gap:10px;">'
+      +'<div style="width:8px;height:8px;border-radius:50%;background:'+color+';flex-shrink:0;margin-top:5px;"></div>'
+      +'<div style="flex:1;"><div style="display:flex;align-items:center;gap:6px;margin-bottom:3px;">'
+      +'<span style="font-size:10px;padding:2px 6px;border-radius:4px;background:rgba(255,255,255,0.07);color:'+color+';">'+l.type+'</span>'
+      +'<span style="font-size:11px;color:var(--text2);">'+fmtTime(l.timestamp)+'</span></div>'
+      +'<div style="font-size:13px;font-weight:500;">'+Number(l.qty)+' '+unitTH(l.unit)+(l.location?' — '+l.location:'')+'</div>'
+      +(l.shift?'<div style="font-size:11px;color:var(--text2);">'+l.shift+(l.jobId?' | '+l.jobId:'')+'</div>':'')
+      +'</div></div>';
+  });
+  html+='</div>';
+  list.innerHTML=html;
 }
-
-// EDIT JOB ITEM
-function editJobItem(key, code, oldQty, unit, name) {
-  var newQty = parseInt(prompt('แก้ไขจำนวน "'+name+'"\nปัจจุบัน: '+oldQty+' '+unitTH(unit)+'\n\nระบุจำนวนใหม่:', oldQty));
-  if (isNaN(newQty) || newQty < 0) { showMsg('ยกเลิกการแก้ไข', false); return; }
-  if (newQty === oldQty) { showMsg('จำนวนไม่เปลี่ยนแปลง', false); return; }
-  var diff = newQty - oldQty;
-  var diffTxt = diff > 0 ? '(เพิ่ม +'+diff+' ตัดจากรถ)' : '(ลด '+diff+' คืนกลับรถ)';
-  showConfirm('ยืนยันการแก้ไข',
-    'รายการ: <b>'+name+'</b><br>เดิม: <b>'+oldQty+' '+unitTH(unit)+'</b><br>ใหม่: <b>'+newQty+' '+unitTH(unit)+'</b><br>'+diffTxt,
-    function(){
-      apiPost({action:'updateJobItem', jobId:key, code:code, newQty:newQty}, function(err,res){
-        if (err||!res.success) { showMsg('เกิดข้อผิดพลาด: '+(res&&res.error||''), false); return; }
-        var t=tr.find(function(i){return i.code===code;}); if(t) t.qty=res.truckQty;
-        showMsg('แก้ไขสำเร็จ', true);
-        renderReport();
-      });
-    }
-  );
-}
-
 // INIT
 var now=new Date();
 // สร้างตัวเลือกปี พ.ศ. ย้อนหลัง 3 ปี
