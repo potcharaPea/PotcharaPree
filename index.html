@@ -1213,6 +1213,7 @@ function printJob(key) {
     +'<div><span class="lbl">กะ: </span><b>'+g.shift+'</b></div>'
     +'<div><span class="lbl">เลขที่ใบงาน: </span><b>'+jobId+'</b></div>'
     +(gpsText?'<div><span class="lbl">พิกัด GPS: </span><b>'+gpsText+'</b></div>':'')
+    +(g.note&&g.note.trim()?'<div style="grid-column:1/-1"><span class="lbl">หมายเหตุ: </span><b>'+g.note+'</b></div>':'')
     +'</div>'
     +'<table><thead><tr><th>รหัสพัสดุ</th><th>รายการอุปกรณ์</th><th style="text-align:right;width:80px;">จำนวน</th></tr></thead>'
     +'<tbody>'+rowsHtml+'</tbody></table>'
