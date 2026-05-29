@@ -337,6 +337,25 @@ select.fi option{background:var(--bg2);}
   </div>
 </div>
 
+<!-- Modal แก้ไขพัสดุในใบงาน -->
+<div class="modal-overlay" id="editJobModal">
+  <div class="modal-box" style="max-width:400px;">
+    <div class="modal-title" id="editJobTitle">✏️ แก้ไขจำนวนพัสดุ</div>
+    <div style="font-size:11px;color:var(--text3);font-family:'IBM Plex Mono',monospace;margin-bottom:12px;" id="editJobSub"></div>
+    <div style="margin-bottom:12px;">
+      <label style="font-size:12px;color:var(--text2);display:block;margin-bottom:4px;">จำนวนใหม่</label>
+      <input id="editJobQty" type="number" min="0" step="1"
+        style="width:100%;padding:10px 12px;border-radius:8px;border:1px solid var(--border2);background:var(--bg3);color:var(--text);font-size:16px;box-sizing:border-box;"
+        placeholder="ระบุจำนวน">
+    </div>
+    <div style="font-size:12px;color:var(--text2);margin-bottom:16px;" id="editJobOriginal"></div>
+    <div class="modal-btns">
+      <button class="btn-can" onclick="closeEditJobModal()">ยกเลิก</button>
+      <button class="btn-sub" onclick="saveEditJobItem()">บันทึก</button>
+    </div>
+  </div>
+</div>
+
 <!-- Watermark -->
 <div class="dev-credit">
   ⚡ พัฒนาโดย<br>
@@ -894,7 +913,7 @@ function renderReport() {
     var wIds={}, uIds={};
     logs.forEach(function(l){
       var k=l.jobId||('s_'+l.timestamp+'_'+l.code);
-      if(l.type==='เบิกขึ้นรถ') wIds[k]=1;
+      if(l.type==='เบิกขึ้นรถ'||l.type==='เบิกของ') wIds[k]=1;
       if(l.type==='งานแก้ไฟ') uIds[k]=1;
     });
     var w=Object.keys(wIds).length;
@@ -905,7 +924,7 @@ function renderReport() {
     if (!logs.length) { document.getElementById('rlist').innerHTML='<div class="empty">ยังไม่มีรายการ</div>'; return; }
     _rptGroups={}; _rptOrder=[];
     [].concat(logs).reverse().forEach(function(l){
-      var key=l.jobId||('s_'+l.timestamp+'_'+l.code);
+      var key=l.jobId||(l.type==='เบิกของ'||l.type==='เบิกขึ้นรถ'?'W_'+l.shift+'_'+l.timestamp:'s_'+l.timestamp+'_'+l.code);
       if (!_rptGroups[key]) {
         _rptGroups[key]={type:l.type, shift:l.shift, location:l.location, timestamp:l.timestamp, lat:String(l.lat||''), lng:String(l.lng||''), note:String(l.note||''), items:[]};
         _rptOrder.push(key);
@@ -1075,6 +1094,58 @@ function renderRptList() {
     mWrap.appendChild(mHdr); mWrap.appendChild(mBody);
     el.appendChild(mWrap);
   });
+}
+
+// EDIT JOB ITEM
+var _editJobCtx = null;
+
+function editJobItem(key, code, qty, unit, name) {
+  _editJobCtx = { key: key, code: code, qty: qty, unit: unit, name: name };
+  document.getElementById('editJobTitle').textContent = '✏️ แก้ไข: ' + name;
+  document.getElementById('editJobSub').textContent = code + ' | ' + unitTH(unit);
+  document.getElementById('editJobOriginal').textContent = 'จำนวนเดิม: ' + qty + ' ' + unitTH(unit);
+  document.getElementById('editJobQty').value = qty;
+  document.getElementById('editJobModal').classList.add('show');
+  setTimeout(function(){ document.getElementById('editJobQty').focus(); document.getElementById('editJobQty').select(); }, 100);
+}
+
+function closeEditJobModal() {
+  document.getElementById('editJobModal').classList.remove('show');
+  _editJobCtx = null;
+}
+
+function saveEditJobItem() {
+  if (!_editJobCtx) return;
+  var ctx = _editJobCtx;
+  var newQty = parseFloat(document.getElementById('editJobQty').value);
+  if (isNaN(newQty) || newQty < 0) { showMsg('กรุณาระบุจำนวนที่ถูกต้อง', false); return; }
+  newQty = Math.round(newQty * 100) / 100;
+  var g = _rptGroups[ctx.key];
+  if (!g) { showMsg('ไม่พบข้อมูลใบงาน', false); closeEditJobModal(); return; }
+  var oldQty = parseFloat(ctx.qty) || 0;
+  var diff = newQty - oldQty;
+  var diffTxt = diff === 0 ? '(ไม่เปลี่ยนแปลง)' : diff > 0 ? '(เพิ่มขึ้น +'+diff+')' : '(ลดลง '+diff+')';
+  closeEditJobModal();
+  showConfirm('ยืนยันแก้ไขจำนวน',
+    '<b>'+ctx.name+'</b><br>เดิม: <b>'+oldQty+' '+unitTH(ctx.unit)+'</b><br>ใหม่: <b>'+newQty+' '+unitTH(ctx.unit)+'</b> '+diffTxt,
+    function() {
+      showMsg('กำลังบันทึก...', 'info');
+      apiPost({ action:'updateJobItem', jobId:ctx.key, code:ctx.code, newQty:newQty, oldQty:oldQty, unit:ctx.unit, name:ctx.name }, function(err, res) {
+        if (err || !res || !res.success) {
+          showMsg('เกิดข้อผิดพลาด: ' + (res && res.error || 'ไม่สามารถแก้ไขได้'), false);
+          return;
+        }
+        var item = g.items.find(function(i){ return i.code === ctx.code; });
+        if (item) item.qty = newQty;
+        if (diff !== 0) {
+          var trItem = tr.find(function(i){ return i.code === ctx.code; });
+          if (trItem) trItem.qty = Math.max(0, parseFloat(trItem.qty) - diff);
+        }
+        showMsg('แก้ไขจำนวนสำเร็จ ✅', true);
+        renderRptList();
+      });
+    }
+  );
 }
 
 // DELETE JOB
