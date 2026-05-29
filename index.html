@@ -130,11 +130,11 @@ select.fi option{background:var(--bg2);}
 <div class="hdr">
   <div>
     <div class="hdr-title">คลังแก้ไฟ กฟส.คำชะอี</div>
-    <div class="hdr-sub">PEA INVENTORY v0.14</div>
+    <div class="hdr-sub">PEA INVENTORY v0.15</div>
   </div>
   <div style="display:flex;align-items:center;gap:8px;">
     <button class="sync-btn" onclick="syncAll()">↻ Sync</button>
-    <div class="ver">v0.14</div>
+    <div class="ver">v0.15</div>
   </div>
 </div>
 
@@ -342,7 +342,7 @@ select.fi option{background:var(--bg2);}
   ⚡ พัฒนาโดย<br>
   นายพชระ ปรีดากรณ์<br>
   วศก.ผปร. กฟส.คำชะอี<br>
-  PEA INVENTORY v0.14
+  PEA INVENTORY v0.15
 </div>
 
 <script>
@@ -1023,6 +1023,13 @@ function renderRptList() {
         gpsDiv.style.cssText='font-size:11px;color:var(--ok);margin-top:4px;';
         gpsDiv.textContent=g.lat+', '+g.lng;
         detail.appendChild(gpsDiv);
+      }
+
+      if (g.note&&g.note.trim()) {
+        var noteDiv=document.createElement('div');
+        noteDiv.style.cssText='font-size:12px;color:var(--text2);margin-top:6px;padding:6px 8px;background:rgba(99,102,241,0.08);border-left:3px solid var(--accent);border-radius:0 4px 4px 0;';
+        noteDiv.innerHTML='<span style="font-size:11px;color:var(--text3);display:block;margin-bottom:2px;">📝 หมายเหตุ</span>'+g.note;
+        detail.appendChild(noteDiv);
       }
 
       // print button
