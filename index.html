@@ -16,7 +16,7 @@
   --bg:#0f1117;--bg2:#161b27;--bg3:#1e2535;
   --border:#2a3347;--border2:#3a4a63;
   --text:#e8edf5;--text2:#8a9ab8;--text3:#4a5a78;
-  --accent:#f59e0b;--ok:#10b981;--danger:#ef4444;--warn:#f59e0b;--info:#3b82f6;
+  --accent:#f59e0b;--ok:#10b981;--danger:#ef4444;--warn:#f59e0b;--info:#3b82f6;--purple:#a855f7;
 }
 body{background:var(--bg);color:var(--text);font-family:"IBM Plex Sans Thai",sans-serif;min-height:100vh;font-size:14px;}
 .app{max-width:480px;margin:0 auto;min-height:100vh;display:flex;flex-direction:column;}
@@ -36,12 +36,13 @@ body{background:var(--bg);color:var(--text);font-family:"IBM Plex Sans Thai",san
 .metrics{display:grid;gap:10px;margin-bottom:14px;}
 .m2{grid-template-columns:repeat(2,1fr);}
 .m3{grid-template-columns:repeat(3,1fr);}
+.m4{grid-template-columns:repeat(2,1fr);}
 .metric{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:14px;cursor:default;transition:border-color 0.2s;}
 .metric.click{cursor:pointer;}
 .metric.click:hover{border-color:var(--border2);}
 .metric-lbl{font-size:11px;color:var(--text2);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.05em;font-family:"IBM Plex Mono",monospace;}
 .metric-val{font-size:24px;font-weight:600;font-family:"IBM Plex Mono",monospace;}
-.c-ok{color:var(--ok);}.c-warn{color:var(--warn);}.c-danger{color:var(--danger);}.c-info{color:var(--info);}
+.c-ok{color:var(--ok);}.c-warn{color:var(--warn);}.c-danger{color:var(--danger);}.c-info{color:var(--info);}.c-purple{color:var(--purple);}
 .search-box{position:relative;margin-bottom:12px;}
 .search-box input{width:100%;padding:10px 14px 10px 34px;background:var(--bg2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;font-family:"IBM Plex Sans Thai",sans-serif;outline:none;}
 .search-box input:focus{border-color:var(--border2);}
@@ -67,6 +68,7 @@ body{background:var(--bg);color:var(--text);font-family:"IBM Plex Sans Thai",san
 .b-empty{background:rgba(239,68,68,0.15);color:var(--danger);}
 .b-info{background:rgba(59,130,246,0.15);color:var(--info);}
 .b-job{background:rgba(245,158,11,0.15);color:var(--warn);}
+.b-tf{background:rgba(168,85,247,0.15);color:var(--purple);}
 .card{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:14px;margin-bottom:10px;}
 .card-title{font-size:14px;font-weight:600;margin-bottom:14px;}
 .fg{margin-bottom:10px;}
@@ -122,6 +124,15 @@ select.fi option{background:var(--bg2);}
 .month-body{margin-bottom:8px;}
 .btn-print{margin-top:10px;width:100%;padding:8px;border-radius:6px;border:1px solid var(--info);background:rgba(59,130,246,0.1);color:var(--info);font-size:12px;cursor:pointer;font-family:"IBM Plex Sans Thai",sans-serif;}
 .dash-bar{height:8px;background:var(--accent);border-radius:4px;margin-top:4px;}
+
+/* เวอร์ชัน PC — จอกว้างขึ้น ดูง่าย (ponytail: media query ล้วน ไม่ต้องมีหน้าแยก) */
+@media (min-width:768px){
+  .app{max-width:920px;border-left:1px solid var(--border);border-right:1px solid var(--border);}
+  .content{padding:24px 32px;}
+  .metrics{gap:14px;}
+  /* การ์ดที่เป็นฟอร์มกรอก ไม่ต้องยืดเต็มจอกว้าง (กันช่อง input ยาวเกินจนดูโล่ง) */
+  #sbk .card,#stf .card,#pk .card,#pu .card,#addForm .card,#editForm .card{max-width:620px;}
+}
 </style>
 </head>
 <body>
@@ -130,11 +141,11 @@ select.fi option{background:var(--bg2);}
 <div class="hdr">
   <div>
     <div class="hdr-title">คลังแก้ไฟ กฟส.คำชะอี</div>
-    <div class="hdr-sub">PEA INVENTORY v0.15</div>
+    <div class="hdr-sub">PEA INVENTORY v0.16</div>
   </div>
   <div style="display:flex;align-items:center;gap:8px;">
     <button class="sync-btn" onclick="syncAll()">↻ Sync</button>
-    <div class="ver">v0.15</div>
+    <div class="ver">v0.16</div>
   </div>
 </div>
 
@@ -154,6 +165,7 @@ select.fi option{background:var(--bg2);}
   <div class="subtabs">
     <button class="subtab active" onclick="subTab('wh',this)">คลังแก้ไฟ</button>
     <button class="subtab" onclick="subTab('bk',this)">เบิกของ</button>
+    <button class="subtab" onclick="subTab('tf',this)">โอนพัสดุ</button>
   </div>
   <div id="swh">
     <div class="metrics m3">
@@ -206,6 +218,26 @@ select.fi option{background:var(--bg2);}
       </div>
       <div id="bklist"></div>
       <button class="btn-sub" id="submitBkBtn" onclick="doWithdraw()" style="display:none;">เบิกขึ้นรถ</button>
+    </div>
+  </div>
+  <div id="stf" style="display:none;">
+    <div class="card">
+      <div class="card-title">โอนพัสดุออกจากคลัง</div>
+      <div class="fg"><label class="fl">ปลายทาง (การไฟฟ้าที่มาขอ)</label><input id="tfdest" class="fi" type="text" placeholder="เช่น กฟส.มุกดาหาร"></div>
+      <div class="fr">
+        <div class="fg"><label class="fl">ผู้รับ</label><input id="tfrecv" class="fi" type="text" placeholder="ชื่อผู้รับ"></div>
+        <div class="fg"><label class="fl">เลขเอกสาร</label><input id="tfdoc" class="fi" type="text" placeholder="เลขที่เอกสาร (ถ้ามี)"></div>
+      </div>
+      <div class="fg"><label class="fl">หมายเหตุ</label><input id="tfnote" class="fi" type="text" placeholder="หมายเหตุเพิ่มเติม (ถ้ามี)"></div>
+      <div class="job-sec">
+        <div class="job-sec-title">เลือกพัสดุที่จะโอน</div>
+        <div class="fg"><label class="fl">หมวดหมู่</label><select id="tfcat" class="fi" onchange="filterTf()"></select></div>
+        <div class="fg"><label class="fl">ค้นหา</label><input id="tfsearch" class="fi" type="text" placeholder="พิมพ์ชื่อหรือรหัส..." oninput="filterTf()" style="margin-bottom:6px;"><select id="tfi" class="fi"></select></div>
+        <div class="fg"><label class="fl">จำนวน</label><input id="tfq" class="fi" type="number" min="1" value="1"></div>
+        <button class="btn-add" onclick="addToTf()">+ เพิ่มรายการ</button>
+      </div>
+      <div id="tflist"></div>
+      <button class="btn-sub" id="submitTfBtn" onclick="doTransfer()" style="display:none;">ยืนยันโอนพัสดุ</button>
     </div>
   </div>
 </div>
@@ -268,10 +300,11 @@ select.fi option{background:var(--bg2);}
     <button id="stab-h" onclick="showSubTab('h')" style="flex:1;padding:10px;font-size:12px;font-weight:600;border:none;background:none;color:var(--text2);border-bottom:2px solid transparent;cursor:pointer;font-family:inherit;">🕐 ประวัติ</button>
   </div>
   <div id="sub-r">
-  <div class="metrics m3">
+  <div class="metrics m4">
     <div class="metric click" id="rf-all" onclick="filterRpt('all')"><div class="metric-lbl">ทั้งหมด</div><div class="metric-val c-ok" id="rc0">—</div></div>
     <div class="metric click" id="rf-w" onclick="filterRpt('เบิกขึ้นรถ')"><div class="metric-lbl">เบิกขึ้นรถ</div><div class="metric-val c-info" id="rc1">—</div></div>
     <div class="metric click" id="rf-u" onclick="filterRpt('งานแก้ไฟ')"><div class="metric-lbl">งานแก้ไฟ</div><div class="metric-val c-warn" id="rc2">—</div></div>
+    <div class="metric click" id="rf-t" onclick="filterRpt('โอนพัสดุ')"><div class="metric-lbl">โอนพัสดุ</div><div class="metric-val c-purple" id="rc3">—</div></div>
   </div>
   <div id="rlist"><div class="loading"><div class="spinner"></div><div>กำลังโหลด...</div></div></div>
   </div><!-- end sub-r -->
@@ -295,6 +328,14 @@ select.fi option{background:var(--bg2);}
     <div class="metrics m2" style="margin-bottom:10px;">
       <div class="metric"><div class="metric-lbl">อุปกรณ์ที่ใช้</div><div class="metric-val c-ok" id="d-items">—</div></div>
       <div class="metric"><div class="metric-lbl">จุดแก้ไฟ</div><div class="metric-val c-danger" id="d-locations">—</div></div>
+    </div>
+    <div class="metrics m2" style="margin-bottom:10px;">
+      <div class="metric"><div class="metric-lbl">โอนพัสดุ (ครั้ง)</div><div class="metric-val c-purple" id="d-transfers">—</div></div>
+      <div class="metric"><div class="metric-lbl">พัสดุที่โอน (ชิ้น)</div><div class="metric-val c-purple" id="d-transfer-items">—</div></div>
+    </div>
+    <div class="card">
+      <div class="card-title">📤 ปลายทางที่โอนพัสดุ</div>
+      <div id="d-transfer-dest"><div class="empty">เลือกเดือนก่อนครับ</div></div>
     </div>
     <div class="card">
       <div class="card-title">📅 งานแก้ไฟรายวัน</div>
@@ -361,7 +402,7 @@ select.fi option{background:var(--bg2);}
   ⚡ พัฒนาโดย<br>
   นายพชระ ปรีดากรณ์<br>
   วศก.ผปร. กฟส.คำชะอี<br>
-  PEA INVENTORY v0.15
+  PEA INVENTORY v0.16
 </div>
 
 <script>
@@ -371,7 +412,7 @@ var wh = [], tr = [], logs = [];
 var openWh = {}, openTr = {};
 CATS.forEach(function(c){ openWh[c]=false; openTr[c]=false; });
 var editCode = '';
-var bkItems = [], jobItems = [];
+var bkItems = [], jobItems = [], tfItems = [];
 var _rptFilter = 'all', _rptGroups = {}, _rptOrder = [], _jobStore = {};
 var _modalCb = null;
 
@@ -474,10 +515,12 @@ function nav(p, el) {
 function subTab(id, el) {
   document.getElementById('swh').style.display = 'none';
   document.getElementById('sbk').style.display = 'none';
+  document.getElementById('stf').style.display = 'none';
   document.querySelectorAll('.subtab').forEach(function(b){ b.classList.remove('active'); });
   document.getElementById('s'+id).style.display = 'block';
   el.classList.add('active');
   if (id==='bk') { initBkCat(); filterBk(); }
+  if (id==='tf') { initTfCat(); filterTf(); }
 }
 
 // BUILD CAT HTML - ไม่มี HTML string ซ้อนกัน ใช้ DOM ล้วนๆ
@@ -703,13 +746,14 @@ function addItem() {
 // SELECTS
 function initSelects() {
   var all = '<option value="">ทั้งหมด</option>' + CATS.map(function(c){ return '<option value="'+c+'">'+c+'</option>'; }).join('');
-  ['bcat','ucat','kcat'].forEach(function(id){ var el=document.getElementById(id); if(el) el.innerHTML=all; });
+  ['bcat','ucat','kcat','tfcat'].forEach(function(id){ var el=document.getElementById(id); if(el) el.innerHTML=all; });
   document.getElementById('acat').innerHTML = CATS.map(function(c){ return '<option value="'+c+'">'+c+'</option>'; }).join('');
   filterBk(); filterU(); filterK();
 }
 function initBkCat() { var el=document.getElementById('bcat'); if(el&&!el.options.length) el.innerHTML='<option value="">ทั้งหมด</option>'+CATS.map(function(c){return '<option value="'+c+'">'+c+'</option>';}).join(''); }
 function initKCat() { var el=document.getElementById('kcat'); if(el&&!el.options.length) el.innerHTML='<option value="">ทั้งหมด</option>'+CATS.map(function(c){return '<option value="'+c+'">'+c+'</option>';}).join(''); }
 function initUCat() { var el=document.getElementById('ucat'); if(el&&!el.options.length) el.innerHTML='<option value="">ทั้งหมด</option>'+CATS.map(function(c){return '<option value="'+c+'">'+c+'</option>';}).join(''); }
+function initTfCat() { var el=document.getElementById('tfcat'); if(el&&!el.options.length) el.innerHTML='<option value="">ทั้งหมด</option>'+CATS.map(function(c){return '<option value="'+c+'">'+c+'</option>';}).join(''); }
 
 function buildOpts(arr, catEl, searchEl) {
   var cat = catEl ? catEl.value : '';
@@ -731,6 +775,7 @@ function buildOpts(arr, catEl, searchEl) {
   return html;
 }
 function filterBk() { var el=document.getElementById('bi'); if(el) el.innerHTML=buildOpts(wh,document.getElementById('bcat'),document.getElementById('bsearch')); }
+function filterTf() { var el=document.getElementById('tfi'); if(el) el.innerHTML=buildOpts(wh,document.getElementById('tfcat'),document.getElementById('tfsearch')); }
 function filterU() { var el=document.getElementById('ui'); if(el) el.innerHTML=buildOpts(tr,document.getElementById('ucat'),document.getElementById('usearch')); }
 function filterK() {
   var filtered = tr.filter(function(i){ return Number(i.qty)>0; });
@@ -801,6 +846,59 @@ function doWithdraw() {
       });
     });
     showMsg('กำลังเบิกของ...', 'info');
+  });
+}
+
+// TRANSFER (โอนพัสดุออกจากคลังโดยตรง ไม่ผ่านรถ)
+function addToTf() {
+  var idx = parseInt(document.getElementById('tfi').value);
+  if (isNaN(idx)) { showMsg('กรุณาเลือกรายการ', false); return; }
+  var qty = parseInt(document.getElementById('tfq').value)||0;
+  if (qty<=0 || !Number.isInteger(qty)) { showMsg('กรุณาระบุจำนวนเป็นจำนวนเต็มบวก', false); return; }
+  var item = wh[idx];
+  if (!item) { showMsg('ไม่พบรายการ', false); return; }
+  if (Number(item.qty)<qty) { showMsg('ของในคลังไม่พอ เหลือ '+item.qty, false); return; }
+  var dup = tfItems.findIndex(function(j){ return j.code===item.code; });
+  if (dup>=0) tfItems[dup].qty+=qty;
+  else tfItems.push({code:item.code, name:item.name, qty:qty, unit:item.unit});
+  renderTfList(); document.getElementById('tfq').value=1;
+  showMsg('เพิ่ม "'+item.name+'" แล้ว', true);
+}
+function renderTfList() {
+  var el = document.getElementById('tflist');
+  var btn = document.getElementById('submitTfBtn');
+  if (!tfItems.length) { el.innerHTML=''; btn.style.display='none'; return; }
+  btn.style.display='block';
+  el.innerHTML = '<div class="job-sum">รายการที่จะโอน ('+tfItems.length+' รายการ)</div>';
+  tfItems.forEach(function(item,i){
+    var d=document.createElement('div'); d.className='job-item';
+    d.innerHTML='<div class="job-item-info"><div class="code">'+item.code+'</div><div class="name">'+item.name+'</div><div class="qty">'+item.qty+' '+unitTH(item.unit)+'</div></div>';
+    var btn2=document.createElement('button'); btn2.className='job-item-del'; btn2.textContent='×';
+    btn2.onclick=(function(i2){return function(){tfItems.splice(i2,1);renderTfList();};})(i);
+    d.appendChild(btn2); el.appendChild(d);
+  });
+}
+function doTransfer() {
+  if (!tfItems.length) { showMsg('กรุณาเพิ่มรายการก่อน', false); return; }
+  var dest = (document.getElementById('tfdest').value||'').trim();
+  if (!dest) { showMsg('กรุณาระบุปลายทาง (การไฟฟ้าที่มาขอ)', false); return; }
+  var receiver = (document.getElementById('tfrecv').value||'').trim();
+  var docNo = (document.getElementById('tfdoc').value||'').trim();
+  var note = (document.getElementById('tfnote').value||'').trim();
+  var sum = tfItems.map(function(i){ return '• '+i.name+' '+i.qty+' '+unitTH(i.unit); }).join('<br>');
+  showConfirm('ยืนยันการโอนพัสดุ', 'ปลายทาง: <b>'+dest+'</b>'+(receiver?'<br>ผู้รับ: <b>'+receiver+'</b>':'')+(docNo?'<br>เลขเอกสาร: <b>'+docNo+'</b>':'')+'<br><br>'+sum, function(){
+    disableBtn('submitTfBtn');
+    showMsg('กำลังโอนพัสดุ...', 'info');
+    apiPost({action:'transfer', items:tfItems, dest:dest, receiver:receiver, docNo:docNo, note:note}, function(err,res){
+      enableBtn('submitTfBtn');
+      if (err||!res||!res.results) { showMsg('เกิดข้อผิดพลาด', false); return; }
+      var errs=res.results.filter(function(r){return r.error;});
+      if (errs.length) { showMsg(errs[0].error, false); return; }
+      res.results.forEach(function(r){ var w=wh.find(function(i){return i.code===r.code;}); if(w) w.qty=r.stockQty; });
+      tfItems=[]; renderTfList(); renderWh(); filterTf();
+      ['tfdest','tfrecv','tfdoc','tfnote'].forEach(function(id){document.getElementById(id).value='';});
+      showMsg('โอนพัสดุสำเร็จ!'+(res.transferId?' '+res.transferId:''), true);
+    });
   });
 }
 
@@ -898,9 +996,9 @@ function doReturn() {
 // REPORT
 function filterRpt(type) {
   _rptFilter = type;
-  ['all','เบิกขึ้นรถ','งานแก้ไฟ'].forEach(function(t){
-    var id = t==='all'?'rf-all':t==='เบิกขึ้นรถ'?'rf-w':'rf-u';
-    var el=document.getElementById(id); if(el) el.style.borderColor = type===t?'var(--accent)':'var(--border)';
+  var idMap={'all':'rf-all','เบิกขึ้นรถ':'rf-w','งานแก้ไฟ':'rf-u','โอนพัสดุ':'rf-t'};
+  Object.keys(idMap).forEach(function(t){
+    var el=document.getElementById(idMap[t]); if(el) el.style.borderColor = type===t?'var(--accent)':'var(--border)';
   });
   renderRptList();
 }
@@ -910,21 +1008,24 @@ function renderReport() {
     if (err) { document.getElementById('rlist').innerHTML='<div class="empty">โหลดไม่ได้ กด Sync</div>'; return; }
     logs = data;
     // นับ jobId ไม่ซ้ำ (1 งาน = 1 jobId)
-    var wIds={}, uIds={};
+    var wIds={}, uIds={}, tIds={};
     logs.forEach(function(l){
       var k=l.jobId||('s_'+l.timestamp+'_'+l.code);
       if(l.type==='เบิกขึ้นรถ'||l.type==='เบิกของ') wIds[k]=1;
       if(l.type==='งานแก้ไฟ') uIds[k]=1;
+      if(l.type==='โอนพัสดุ') tIds[k]=1;
     });
     var w=Object.keys(wIds).length;
     var u=Object.keys(uIds).length;
-    var rc0=document.getElementById('rc0'); if(rc0) rc0.textContent=w+u;
+    var t=Object.keys(tIds).length;
+    var rc0=document.getElementById('rc0'); if(rc0) rc0.textContent=w+u+t;
     var rc1=document.getElementById('rc1'); if(rc1) rc1.textContent=w;
     var rc2=document.getElementById('rc2'); if(rc2) rc2.textContent=u;
+    var rc3=document.getElementById('rc3'); if(rc3) rc3.textContent=t;
     if (!logs.length) { document.getElementById('rlist').innerHTML='<div class="empty">ยังไม่มีรายการ</div>'; return; }
     _rptGroups={}; _rptOrder=[];
     [].concat(logs).reverse().forEach(function(l){
-      var key=l.jobId||(l.type==='เบิกของ'||l.type==='เบิกขึ้นรถ'?'W_'+l.shift+'_'+l.timestamp:'s_'+l.timestamp+'_'+l.code);
+      var key=l.jobId||(l.type==='เบิกของ'||l.type==='เบิกขึ้นรถ'?'W_'+l.shift+'_'+l.timestamp:l.type==='โอนพัสดุ'?'T_'+l.timestamp:'s_'+l.timestamp+'_'+l.code);
       if (!_rptGroups[key]) {
         _rptGroups[key]={type:l.type, shift:l.shift, location:l.location, timestamp:l.timestamp, lat:String(l.lat||''), lng:String(l.lng||''), note:String(l.note||''), items:[]};
         _rptOrder.push(key);
@@ -936,7 +1037,12 @@ function renderReport() {
 }
 
 function renderRptList() {
-  var order = _rptFilter==='all' ? _rptOrder : _rptOrder.filter(function(k){return _rptGroups[k].type===_rptFilter;});
+  var order = _rptFilter==='all' ? _rptOrder : _rptOrder.filter(function(k){
+    var t=_rptGroups[k].type;
+    // ponytail: 'เบิกของ' กับ 'เบิกขึ้นรถ' คือหมวดเบิกขึ้นรถเดียวกัน (ให้ตรงกับตรรกะการนับ rc1)
+    if (_rptFilter==='เบิกขึ้นรถ') return t==='เบิกขึ้นรถ'||t==='เบิกของ';
+    return t===_rptFilter;
+  });
   var el = document.getElementById('rlist');
   el.innerHTML = '';
   if (!order.length) { el.innerHTML='<div class="empty">ไม่มีรายการ</div>'; return; }
@@ -997,7 +1103,7 @@ function renderRptList() {
       var bdgRow=document.createElement('div');
       bdgRow.style.cssText='display:flex;align-items:center;gap:6px;margin-bottom:4px;';
       var bdg=document.createElement('span');
-      var typeColor={'เบิกขึ้นรถ':'b-info','งานแก้ไฟ':'b-job','เบิกของ':'b-info','คืนของ':'b-ok','คืนจากงาน':'b-ok'};
+      var typeColor={'เบิกขึ้นรถ':'b-info','งานแก้ไฟ':'b-job','เบิกของ':'b-info','คืนของ':'b-ok','คืนจากงาน':'b-ok','โอนพัสดุ':'b-tf'};
       bdg.className='badge '+(typeColor[g.type]||'b-info');
       bdg.textContent=g.type;
       var cntSp=document.createElement('span');
@@ -1022,7 +1128,7 @@ function renderRptList() {
       // time
       var timeDiv=document.createElement('div');
       timeDiv.className='rpt-time';
-      timeDiv.textContent=fmtTime(g.timestamp)+' | '+g.shift;
+      timeDiv.textContent=fmtTime(g.timestamp)+(g.shift?' | '+g.shift:'');
 
       // detail
       var detail=document.createElement('div');
@@ -1254,6 +1360,33 @@ function renderDash() {
   document.getElementById('d-withdraws').textContent=withdraws.length;
   document.getElementById('d-items').textContent=jobs.reduce(function(s,l){return s+Number(l.qty);},0);
   document.getElementById('d-locations').textContent=locations.length;
+
+  // โอนพัสดุ
+  var transfers=filtered.filter(function(l){return l.type==='โอนพัสดุ';});
+  var tfIds=[];
+  transfers.forEach(function(l){var k=l.jobId||('t_'+l.timestamp);if(tfIds.indexOf(k)<0)tfIds.push(k);});
+  document.getElementById('d-transfers').textContent=tfIds.length;
+  document.getElementById('d-transfer-items').textContent=transfers.reduce(function(s,l){return s+Number(l.qty);},0);
+  // ปลายทางที่โอน (location = ปลายทาง) นับจำนวนชิ้นรวม
+  var destMap={};
+  transfers.forEach(function(l){var k=l.location||'(ไม่ระบุ)';destMap[k]=(destMap[k]||0)+(Number(l.qty)||0);});
+  var destSorted=Object.keys(destMap).map(function(k){return {name:k,qty:destMap[k]};}).sort(function(a,b){return b.qty-a.qty;});
+  var destEl=document.getElementById('d-transfer-dest');
+  destEl.innerHTML='';
+  if(!destSorted.length){destEl.innerHTML='<div class="empty">ไม่มีข้อมูล</div>';}
+  else {
+    var maxD=destSorted[0].qty||1;
+    destSorted.forEach(function(i,idx){
+      var d=document.createElement('div');
+      d.style.cssText='margin-bottom:8px;';
+      d.innerHTML='<div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px;">'
+        +'<span style="color:var(--text2);">'+(idx+1)+'. '+i.name+'</span>'
+        +'<span style="color:var(--purple);font-weight:600;">'+i.qty+' ชิ้น</span></div>'
+        +'<div style="background:var(--bg3);border-radius:4px;height:6px;overflow:hidden;">'
+        +'<div style="width:'+(i.qty/maxD*100)+'%;height:100%;background:var(--purple);border-radius:4px;"></div></div>';
+      destEl.appendChild(d);
+    });
+  }
 
   // อุปกรณ์บ่อย
   var itemMap={};
