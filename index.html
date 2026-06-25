@@ -913,7 +913,15 @@ function getGPS() {
       document.getElementById('ulng').value=pos.coords.longitude.toFixed(6);
       st.textContent='✅ ได้พิกัดแล้ว (±'+Math.round(pos.coords.accuracy)+' ม.)';
     },
-    function(){ document.getElementById('gps-status').textContent='❌ ดึงพิกัดไม่ได้'; }
+    function(err){
+      var msg={
+        1:'❌ ถูกปฏิเสธสิทธิ์ — อนุญาตตำแหน่งให้เว็บนี้ และเปิดด้วย Chrome/Safari (ไม่ใช่เบราว์เซอร์ในแอป LINE)',
+        2:'❌ หาตำแหน่งไม่ได้ — เช็คว่าเปิด GPS/Location ของเครื่องแล้ว และอยู่ที่มีสัญญาณ',
+        3:'❌ หมดเวลา — ลองกดใหม่อีกครั้ง'
+      };
+      document.getElementById('gps-status').textContent = msg[err&&err.code] || '❌ ดึงพิกัดไม่ได้';
+    },
+    { enableHighAccuracy:true, timeout:10000, maximumAge:0 }
   );
 }
 
