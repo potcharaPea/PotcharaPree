@@ -9,6 +9,7 @@
 <link rel="manifest" href="manifest.json">
 <title>คลังแก้ไฟ กฟส.คำชะอี</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
@@ -141,11 +142,11 @@ select.fi option{background:var(--bg2);}
 <div class="hdr">
   <div>
     <div class="hdr-title">คลังแก้ไฟ กฟส.คำชะอี</div>
-    <div class="hdr-sub">PEA INVENTORY v0.16</div>
+    <div class="hdr-sub">PEA INVENTORY v0.17</div>
   </div>
   <div style="display:flex;align-items:center;gap:8px;">
     <button class="sync-btn" onclick="syncAll()">↻ Sync</button>
-    <div class="ver">v0.16</div>
+    <div class="ver">v0.17</div>
   </div>
 </div>
 
@@ -402,7 +403,7 @@ select.fi option{background:var(--bg2);}
   ⚡ พัฒนาโดย<br>
   นายพชระ ปรีดากรณ์<br>
   วศก.ผปร. กฟส.คำชะอี<br>
-  PEA INVENTORY v0.16
+  PEA INVENTORY v0.17
 </div>
 
 <script>
@@ -1035,7 +1036,7 @@ function renderReport() {
     [].concat(logs).reverse().forEach(function(l){
       var key=l.jobId||(l.type==='เบิกของ'||l.type==='เบิกขึ้นรถ'?'W_'+l.shift+'_'+l.timestamp:l.type==='โอนพัสดุ'?'T_'+l.timestamp:'s_'+l.timestamp+'_'+l.code);
       if (!_rptGroups[key]) {
-        _rptGroups[key]={type:l.type, shift:l.shift, location:l.location, timestamp:l.timestamp, lat:String(l.lat||''), lng:String(l.lng||''), note:String(l.note||''), items:[]};
+        _rptGroups[key]={type:l.type, shift:l.shift, location:l.location, timestamp:l.timestamp, lat:String(l.lat||''), lng:String(l.lng||''), note:String(l.note||''), openedAt:String(l.openedAt||''), items:[]};
         _rptOrder.push(key);
       }
       _rptGroups[key].items.push({code:l.code, name:l.name, qty:l.qty, unit:l.unit});
@@ -1118,6 +1119,7 @@ function renderRptList() {
       cntSp.style.cssText='font-size:11px;color:var(--text2);';
       cntSp.textContent=g.items.length+' รายการ';
       bdgRow.appendChild(bdg); bdgRow.appendChild(cntSp);
+      if (g.openedAt) { var obg=document.createElement('span'); obg.className='badge b-ok'; obg.textContent='✓ เปิดใบสั่งแล้ว'; bdgRow.appendChild(obg); }
 
       var nameDiv=document.createElement('div');
       nameDiv.className='rpt-name';
@@ -1186,6 +1188,18 @@ function renderRptList() {
           detail.appendChild(editRow);
         });
 
+        // ปุ่มยืนยัน "เปิดใบสั่งในระบบแล้ว"
+        var openBtn=document.createElement('button');
+        if (g.openedAt) {
+          openBtn.textContent='✅ เปิดใบสั่งในระบบแล้ว ('+g.openedAt+') — แตะเพื่อยกเลิก';
+          openBtn.style.cssText='margin-top:8px;width:100%;padding:9px;border-radius:6px;border:1px solid var(--ok);background:rgba(16,185,129,0.15);color:var(--ok);font-size:12px;cursor:pointer;';
+        } else {
+          openBtn.textContent='☐ ยืนยันว่าเปิดใบสั่งในระบบแล้ว';
+          openBtn.style.cssText='margin-top:8px;width:100%;padding:9px;border-radius:6px;border:1px solid var(--border2);background:none;color:var(--text2);font-size:12px;cursor:pointer;';
+        }
+        openBtn.onclick=(function(k){ return function(e){ e.stopPropagation(); toggleJobOpened(k); }; })(key);
+        detail.appendChild(openBtn);
+
         // ปุ่ม Delete
         var delBtn=document.createElement('button');
         delBtn.style.cssText='margin-top:8px;width:100%;padding:8px;border-radius:6px;border:1px solid var(--danger);background:rgba(239,68,68,0.1);color:var(--danger);font-size:12px;cursor:pointer;';
@@ -1199,6 +1213,13 @@ function renderRptList() {
       printBtn.textContent='🖨️ พิมพ์ใบงาน PDF';
       printBtn.onclick=(function(k){ return function(e){ e.stopPropagation(); printJob(k); }; })(key);
       detail.appendChild(printBtn);
+
+      var imgBtn=document.createElement('button');
+      imgBtn.className='btn-print';
+      imgBtn.style.cssText='border-color:var(--ok);background:rgba(16,185,129,0.1);color:var(--ok);';
+      imgBtn.textContent='📷 แคปรูปใบงาน / แชร์';
+      imgBtn.onclick=(function(k){ return function(e){ e.stopPropagation(); shareJobImage(k); }; })(key);
+      detail.appendChild(imgBtn);
 
       card.onclick=function(){ var d=card.querySelector('.rpt-detail'); var a=card.querySelector('.rpt-arrow'); if(!d)return; var open=d.style.display==='none'||d.style.display===''; d.style.display=open?'block':'none'; if(a)a.textContent=open?'▲':'▼'; };
       card.appendChild(topRow); card.appendChild(sumDiv); card.appendChild(timeDiv); card.appendChild(detail);
@@ -1299,46 +1320,89 @@ function deleteJob(key) {
   );
 }
 
+// JOB SHEET — ใบงานแบบ inline style (ใช้ร่วมกันทั้งพิมพ์ PDF และแคปรูป)
+function jobSheetInner(g, key) {
+  var jobId=key.indexOf('JOB-')===0?key:'-';
+  var gpsText=g.lat&&g.lng?g.lat+', '+g.lng:'';
+  var td='border:1px solid #ccc;padding:8px;font-size:12px;';
+  var th=td+'background:#f5f5f5;text-align:left;';
+  var rows=g.items.map(function(i){
+    return '<tr><td style="'+td+'">'+i.code+'</td><td style="'+td+'">'+i.name
+      +'</td><td style="'+td+'text-align:right;font-weight:bold;white-space:nowrap;">'+i.qty+' '+unitTH(i.unit)+'</td></tr>';
+  }).join('');
+  return '<div style="border-bottom:2px solid #000;padding-bottom:10px;margin-bottom:16px;">'
+    +'<div style="font-size:15px;font-weight:bold;">การไฟฟ้าส่วนภูมิภาคสาขาคำชะอี</div>'
+    +'<div style="font-size:12px;color:#555;margin-top:4px;">ใบรายการอุปกรณ์แก้ไฟฟ้าขัดข้อง</div></div>'
+    +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px 24px;margin-bottom:16px;font-size:12px;">'
+    +'<div><span style="color:#888;">จุดที่แก้ไข: </span><b>'+g.location+'</b></div>'
+    +'<div><span style="color:#888;">วันที่/เวลา: </span><b>'+fmtTime(g.timestamp)+'</b></div>'
+    +'<div><span style="color:#888;">กะ: </span><b>'+g.shift+'</b></div>'
+    +'<div><span style="color:#888;">เลขที่ใบงาน: </span><b>'+jobId+'</b></div>'
+    +(gpsText?'<div><span style="color:#888;">พิกัด GPS: </span><b>'+gpsText+'</b></div>':'')
+    +(g.note&&g.note.trim()?'<div style="grid-column:1/-1"><span style="color:#888;">หมายเหตุ: </span><b>'+g.note+'</b></div>':'')
+    +'</div>'
+    +'<table style="width:100%;border-collapse:collapse;"><thead><tr><th style="'+th+'">รหัสพัสดุ</th><th style="'+th+'">รายการอุปกรณ์</th><th style="'+th+'text-align:right;width:80px;">จำนวน</th></tr></thead>'
+    +'<tbody>'+rows+'</tbody></table>'
+    +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:40px;margin-top:50px;">'
+    +'<div style="text-align:center;border-top:1px solid #999;padding-top:8px;font-size:12px;">ผู้เบิก<br><br>..............................<br>( ........................... )</div>'
+    +'<div style="text-align:center;border-top:1px solid #999;padding-top:8px;font-size:12px;">ผู้อนุมัติ<br><br>..............................<br>( ........................... )</div>'
+    +'</div>';
+}
+
 // PRINT
 function printJob(key) {
   var g=_jobStore[key]; if (!g) { alert('ไม่พบข้อมูล'); return; }
-  var rowsHtml=g.items.map(function(i){
-    return '<tr><td>'+i.code+'</td><td>'+i.name+'</td><td style="text-align:right;font-weight:bold;">'+i.qty+' '+unitTH(i.unit)+'</td></tr>';
-  }).join('');
-  var jobId=key.indexOf('JOB-')===0?key:'-';
-  var gpsText=g.lat&&g.lng?g.lat+', '+g.lng:'';
   var win=window.open('','_blank');
   if (!win) { showMsg('กรุณาอนุญาต Popup เพื่อพิมพ์ใบงาน', false); return; }
   var html='<!DOCTYPE html><html><head><meta charset="UTF-8"><title>ใบงานแก้ไฟ</title>'
-    +'<style>body{font-family:sans-serif;padding:24px;font-size:13px;color:#111;}'
-    +'h1{font-size:15px;margin:0;}h2{font-size:12px;margin:4px 0;font-weight:normal;color:#555;}'
-    +'.hdr{border-bottom:2px solid #000;padding-bottom:10px;margin-bottom:16px;}'
-    +'.info{display:grid;grid-template-columns:1fr 1fr;gap:6px 24px;margin-bottom:16px;font-size:12px;}'
-    +'.lbl{color:#888;}table{width:100%;border-collapse:collapse;}'
-    +'th,td{border:1px solid #ccc;padding:8px;font-size:12px;text-align:left;}'
-    +'th{background:#f5f5f5;}.sign{display:grid;grid-template-columns:1fr 1fr;gap:40px;margin-top:50px;}'
-    +'.sign-box{text-align:center;border-top:1px solid #999;padding-top:8px;font-size:12px;}'
-    +'.no-print{text-align:center;margin-top:20px;}@media print{.no-print{display:none;}}'
-    +'</style></head><body>'
-    +'<div class="hdr"><h1>การไฟฟ้าส่วนภูมิภาคสาขาคำชะอี</h1><h2>ใบรายการอุปกรณ์แก้ไฟฟ้าขัดข้อง</h2></div>'
-    +'<div class="info">'
-    +'<div><span class="lbl">จุดที่แก้ไข: </span><b>'+g.location+'</b></div>'
-    +'<div><span class="lbl">วันที่/เวลา: </span><b>'+fmtTime(g.timestamp)+'</b></div>'
-    +'<div><span class="lbl">กะ: </span><b>'+g.shift+'</b></div>'
-    +'<div><span class="lbl">เลขที่ใบงาน: </span><b>'+jobId+'</b></div>'
-    +(gpsText?'<div><span class="lbl">พิกัด GPS: </span><b>'+gpsText+'</b></div>':'')
-    +(g.note&&g.note.trim()?'<div style="grid-column:1/-1"><span class="lbl">หมายเหตุ: </span><b>'+g.note+'</b></div>':'')
-    +'</div>'
-    +'<table><thead><tr><th>รหัสพัสดุ</th><th>รายการอุปกรณ์</th><th style="text-align:right;width:80px;">จำนวน</th></tr></thead>'
-    +'<tbody>'+rowsHtml+'</tbody></table>'
-    +'<div class="sign">'
-    +'<div class="sign-box">ผู้เบิก<br><br>..............................<br>( ........................... )</div>'
-    +'<div class="sign-box">ผู้อนุมัติ<br><br>..............................<br>( ........................... )</div>'
-    +'</div>'
+    +'<style>body{font-family:sans-serif;padding:24px;color:#111;}'
+    +'.no-print{text-align:center;margin-top:20px;}@media print{.no-print{display:none;}}</style></head><body>'
+    +jobSheetInner(g,key)
     +'<div class="no-print" style="display:flex;gap:8px;justify-content:center;"><button onclick="window.close()" style="padding:8px 24px;background:#555;color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:13px;">← กลับ</button><button onclick="window.print()" style="padding:8px 24px;background:#1a73e8;color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:13px;">🖨️ พิมพ์</button></div>'
     +'</body></html>';
   win.document.write(html);
   win.document.close();
+}
+
+// แคปรูปใบงาน → แชร์ (มือถือ) หรือดาวน์โหลด PNG
+function shareJobImage(key) {
+  var g=_jobStore[key]; if (!g) { showMsg('ไม่พบข้อมูล', false); return; }
+  if (typeof html2canvas==='undefined') { showMsg('โหลดตัวสร้างรูปไม่ได้ (ต้องมีเน็ต)', false); return; }
+  showMsg('กำลังสร้างรูปใบงาน...', 'info');
+  var box=document.createElement('div');
+  box.style.cssText='position:fixed;left:-9999px;top:0;width:640px;padding:28px;background:#fff;color:#111;font-family:"IBM Plex Sans Thai",sans-serif;';
+  box.innerHTML=jobSheetInner(g,key);
+  document.body.appendChild(box);
+  html2canvas(box, {scale:2, backgroundColor:'#ffffff'}).then(function(canvas){
+    document.body.removeChild(box);
+    canvas.toBlob(function(blob){
+      if (!blob) { showMsg('สร้างรูปไม่ได้', false); return; }
+      var fname='ใบงาน_'+(fmtTime(g.timestamp).split(' ')[0]||'').replace(/\//g,'-')+'.png';
+      var file=new File([blob], fname, {type:'image/png'});
+      if (navigator.canShare && navigator.canShare({files:[file]})) {
+        navigator.share({files:[file], title:'ใบงานแก้ไฟ'})
+          .then(function(){ showMsg('แชร์ใบงานแล้ว', true); })
+          .catch(function(){ /* ผู้ใช้กดยกเลิก */ });
+      } else {
+        var a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=fname; a.click();
+        URL.revokeObjectURL(a.href);
+        showMsg('บันทึกรูปใบงานแล้ว', true);
+      }
+    }, 'image/png');
+  }).catch(function(){ if(box.parentNode) document.body.removeChild(box); showMsg('สร้างรูปไม่ได้', false); });
+}
+
+// ยืนยัน/ยกเลิก "เปิดใบสั่งในระบบแล้ว"
+function toggleJobOpened(key) {
+  var g=_rptGroups[key]; if (!g) { showMsg('ไม่พบใบงาน', false); return; }
+  var willOpen=!g.openedAt;
+  showMsg(willOpen?'กำลังยืนยัน...':'กำลังยกเลิก...', 'info');
+  apiPost({action:'toggleJobOpened', jobId:key, opened:willOpen}, function(err,res){
+    if (err||!res||!res.success) { showMsg('เกิดข้อผิดพลาด: '+(res&&res.error||''), false); return; }
+    g.openedAt=res.openedAt||'';
+    showMsg(willOpen?'ยืนยันเปิดใบสั่งแล้ว ✅':'ยกเลิกแล้ว', true);
+    renderRptList();
+  });
 }
 
 // DASHBOARD
