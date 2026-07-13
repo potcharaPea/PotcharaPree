@@ -59,6 +59,7 @@ function doPost(e) {
     else if (action === 'transfer')        result = doTransfer(d);
     else if (action === 'deleteJob')       result = doDeleteJob(d);
     else if (action === 'updateJobItem')   result = doUpdateJobItem(d);
+    else if (action === 'addJobItem')      result = doAddJobItem(d);
     else if (action === 'toggleJobOpened') result = doToggleJobOpened(d);
     else result = { error: 'Unknown action: ' + action };
     return out(result);
@@ -355,6 +356,42 @@ function doUpdateJobItem(d) {
     }
   }
   return { success: true, updated: updated, diff: diff };
+}
+
+// ============================================
+// เพิ่มอุปกรณ์เข้าใบงานแก้ไฟเดิม (กรณีตอนตัดใส่ของไม่ครบ) — ตัดจากรถตามปกติ
+// รหัสซ้ำในใบงาน → บวกจำนวนแถวเดิม, รหัสใหม่ → append แถวใหม่ jobId เดียวกัน
+// ============================================
+function doAddJobItem(d) {
+  var shT = SS.getSheetByName(SHEET_TRUCK);
+  var shL = SS.getSheetByName(SHEET_LOGS);
+  var qty = Number(d.qty);
+  if (!(qty > 0)) return { error: 'จำนวนไม่ถูกต้อง' };
+  var jobId = String(d.jobId);
+  var code  = String(d.code);
+
+  var rowT = findRow(shT, code);
+  if (rowT < 0) return { error: 'ไม่พบรหัส ' + code + ' บนรถ' };
+  var curT = Number(shT.getRange(rowT, 3).getValue());
+  if (curT < qty) return { error: 'ของบนรถไม่พอ: ' + d.name + ' เหลือ ' + curT };
+
+  var data = shL.getDataRange().getValues();
+  var existRow = -1, existQty = 0;
+  for (var i = 1; i < data.length; i++) {
+    if (String(data[i][10]) === jobId && String(data[i][1]) === code) {
+      existRow = i + 1; existQty = Number(data[i][3]); break;
+    }
+  }
+
+  shT.getRange(rowT, 3).setValue(curT - qty);
+  if (existRow > 0) {
+    shL.getRange(existRow, 4).setValue(existQty + qty);
+    return { success: true, truckQty: curT - qty, merged: true, newQty: existQty + qty };
+  }
+  shL.appendRow(['งานแก้ไฟ', code, d.name, qty, d.unit,
+                 d.shift || '', d.location || '', nowTH(),
+                 d.lat || '', d.lng || '', jobId, d.note || '', d.openedAt || '']);
+  return { success: true, truckQty: curT - qty, merged: false };
 }
 
 // ============================================

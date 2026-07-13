@@ -398,6 +398,24 @@ select.fi option{background:var(--bg2);}
   </div>
 </div>
 
+<!-- Modal เพิ่มอุปกรณ์เข้าใบงาน -->
+<div class="modal-overlay" id="addJobModal">
+  <div class="modal-box" style="max-width:420px;">
+    <div class="modal-title">➕ เพิ่มอุปกรณ์เข้าใบงาน</div>
+    <div style="font-size:11px;color:var(--text3);font-family:'IBM Plex Mono',monospace;margin-bottom:12px;" id="addJobSub"></div>
+    <div class="fg">
+      <label class="fl">อุปกรณ์ (ตัดจากรถแก้ไฟ)</label>
+      <input id="addJobSearch" class="fi" type="text" placeholder="พิมพ์ชื่อหรือรหัส..." oninput="filterAddJob()" style="margin-bottom:6px;">
+      <select id="addJobSel" class="fi"></select>
+    </div>
+    <div class="fg"><label class="fl">จำนวน</label><input id="addJobQty" class="fi" type="number" min="1" value="1"></div>
+    <div class="modal-btns">
+      <button class="btn-can" onclick="closeAddJobModal()">ยกเลิก</button>
+      <button class="btn-sub" onclick="saveAddJobItem()">ตัดของ + เพิ่ม</button>
+    </div>
+  </div>
+</div>
+
 <!-- Watermark -->
 <div class="dev-credit">
   ⚡ พัฒนาโดย<br>
@@ -1188,6 +1206,13 @@ function renderRptList() {
           detail.appendChild(editRow);
         });
 
+        // ปุ่มเพิ่มอุปกรณ์เข้าใบงาน (กรณีตัดใส่ของไม่ครบ) — ตัดจากรถ
+        var addItemBtn=document.createElement('button');
+        addItemBtn.style.cssText='margin-top:6px;width:100%;padding:9px;border-radius:6px;border:1px dashed var(--accent);background:rgba(99,102,241,0.08);color:var(--accent);font-size:12px;cursor:pointer;';
+        addItemBtn.textContent='➕ เพิ่มอุปกรณ์ (ตัดจากรถ)';
+        addItemBtn.onclick=(function(k){ return function(e){ e.stopPropagation(); openAddJobModal(k); }; })(key);
+        detail.appendChild(addItemBtn);
+
         // ปุ่มยืนยัน "เปิดใบสั่งในระบบแล้ว"
         var openBtn=document.createElement('button');
         if (g.openedAt) {
@@ -1277,6 +1302,76 @@ function saveEditJobItem() {
           if (trItem) trItem.qty = Math.max(0, parseFloat(trItem.qty) - diff);
         }
         showMsg('แก้ไขจำนวนสำเร็จ ✅', true);
+        renderRptList();
+      });
+    }
+  );
+}
+
+// ADD ITEM TO EXISTING JOB — ตัดจากรถแก้ไฟ
+var _addJobKey = null;
+
+function openAddJobModal(key) {
+  var g = _rptGroups[key];
+  if (!g) { showMsg('ไม่พบใบงาน', false); return; }
+  _addJobKey = key;
+  document.getElementById('addJobSub').textContent = key + ' | จุด: ' + (g.location || '-');
+  document.getElementById('addJobSearch').value = '';
+  document.getElementById('addJobQty').value = 1;
+  filterAddJob();
+  document.getElementById('addJobModal').classList.add('show');
+}
+
+function closeAddJobModal() {
+  document.getElementById('addJobModal').classList.remove('show');
+  _addJobKey = null;
+}
+
+// ตัวเลือก = ของบนรถที่เหลือ > 0 (จัดกลุ่มตามหมวด)
+function filterAddJob() {
+  var el = document.getElementById('addJobSel'); if (!el) return;
+  var key = (document.getElementById('addJobSearch').value || '').toLowerCase();
+  var html = '<option value="">-- เลือกรายการ --</option>';
+  CATS.forEach(function(c) {
+    var rows = tr.filter(function(i) {
+      return i.cat===c && Number(i.qty)>0 && (!key||String(i.name).toLowerCase().includes(key)||String(i.code).includes(key));
+    });
+    if (!rows.length) return;
+    html += '<optgroup label="'+c+'">';
+    rows.forEach(function(item) { html += '<option value="'+tr.indexOf(item)+'">'+item.code+' — '+item.name+' (บนรถ: '+item.qty+' '+unitTH(item.unit)+')</option>'; });
+    html += '</optgroup>';
+  });
+  el.innerHTML = html;
+}
+
+function saveAddJobItem() {
+  if (!_addJobKey) return;
+  var key = _addJobKey;
+  var g = _rptGroups[key];
+  if (!g) { showMsg('ไม่พบใบงาน', false); return; }
+  var idx = document.getElementById('addJobSel').value;
+  if (idx==='') { showMsg('กรุณาเลือกอุปกรณ์', false); return; }
+  var item = tr[+idx];
+  if (!item) { showMsg('ไม่พบอุปกรณ์', false); return; }
+  var qty = parseFloat(document.getElementById('addJobQty').value);
+  if (isNaN(qty) || qty<=0) { showMsg('กรุณาระบุจำนวนที่ถูกต้อง', false); return; }
+  qty = Math.round(qty * 100) / 100;
+  if (Number(item.qty) < qty) { showMsg('ของบนรถไม่พอ เหลือ '+item.qty, false); return; }
+  closeAddJobModal();
+  showConfirm('ยืนยันเพิ่มอุปกรณ์เข้าใบงาน',
+    '<b>'+item.name+'</b><br>จำนวน: <b>'+qty+' '+unitTH(item.unit)+'</b><br>ตัดจากรถแก้ไฟ (บนรถเหลือ '+item.qty+')',
+    function() {
+      showMsg('กำลังบันทึก...', 'info');
+      apiPost({ action:'addJobItem', jobId:key, code:item.code, name:item.name, qty:qty, unit:item.unit,
+                shift:g.shift, location:g.location, lat:g.lat, lng:g.lng, note:g.note, openedAt:g.openedAt }, function(err, res) {
+        if (err || !res || !res.success) { showMsg('เกิดข้อผิดพลาด: '+(res && res.error || 'เพิ่มไม่ได้'), false); return; }
+        // อัปเดต local: ลดของบนรถ + รวม/เพิ่มรายการในใบงาน
+        var trItem = tr.find(function(i){ return i.code===item.code; });
+        if (trItem) trItem.qty = Math.max(0, Number(trItem.qty) - qty);
+        var ex = g.items.find(function(i){ return i.code===item.code; });
+        if (ex) ex.qty = Number(ex.qty) + qty;
+        else g.items.push({ code:item.code, name:item.name, qty:qty, unit:item.unit });
+        showMsg('เพิ่มอุปกรณ์เข้าใบงานสำเร็จ ✅', true);
         renderRptList();
       });
     }
