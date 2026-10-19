@@ -111,7 +111,6 @@ select.fi option{background:var(--bg2);}
 .modal-title{font-size:16px;font-weight:600;margin-bottom:8px;}
 .modal-body{font-size:13px;color:var(--text2);margin-bottom:20px;line-height:1.6;}
 .modal-btns{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
-.dev-credit{text-align:center;padding:18px 16px 24px;color:var(--text3);font-size:10px;font-family:"IBM Plex Mono",monospace;letter-spacing:0.05em;border-top:1px solid var(--border);margin-top:8px;line-height:1.8;user-select:none;}
 .rpt-card{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:12px;margin-bottom:8px;cursor:pointer;}
 .rpt-card:hover{border-color:var(--border2);}
 .rpt-top{display:flex;justify-content:space-between;align-items:flex-start;}
@@ -140,6 +139,10 @@ select.fi option{background:var(--bg2);}
 .hdr-logo .ico{width:19px;height:19px;color:#1a1200;stroke-width:2.4;}
 .card-title .ico{color:var(--accent);margin-right:2px;}
 .gps-btn .ico{width:18px;height:18px;vertical-align:-4px;}
+.info-btn{padding:6px 8px;line-height:0;}
+.info-btn .ico{width:16px;height:16px;vertical-align:0;}
+.credit-box{text-align:center;max-width:320px;}
+.credit-box .hdr-logo .ico{width:26px;height:26px;}
 .card,.metric,.cat-block,.rpt-card{border-radius:12px;}
 .card{padding:16px;}
 .metric{background:linear-gradient(180deg,var(--bg2),#131824);}
@@ -224,7 +227,7 @@ button:active:not(:disabled){transform:scale(0.98);}
   </div>
   <div style="display:flex;align-items:center;gap:8px;">
     <button class="sync-btn" onclick="syncAll()"><i data-ico="refresh"></i> Sync</button>
-    <div class="ver">v0.18</div>
+    <button class="sync-btn info-btn" onclick="document.getElementById('creditModal').classList.add('show')" aria-label="เกี่ยวกับแอป"><i data-ico="info"></i></button>
   </div>
 </div>
 
@@ -447,14 +450,6 @@ button:active:not(:disabled){transform:scale(0.98);}
   </div><!-- end sub-h -->
 </div><!-- end pr -->
 
-<!-- Watermark (อยู่ใน content เพื่อให้เลื่อนเห็นบน PC) -->
-<div class="dev-credit">
-  พัฒนาโดย<br>
-  นายพชระ ปรีดากรณ์<br>
-  วศก.ผปร. กฟส.คำชะอี<br>
-  PEA INVENTORY v0.18
-</div>
-
 </div>
 </div>
 
@@ -467,6 +462,17 @@ button:active:not(:disabled){transform:scale(0.98);}
       <button class="btn-can" onclick="closeModal()">ยกเลิก</button>
       <button class="btn-sub" onclick="confirmAction()">ยืนยัน</button>
     </div>
+  </div>
+</div>
+
+<!-- Modal เครดิตผู้พัฒนา (กดพื้นหลังเพื่อปิด) -->
+<div class="modal-overlay" id="creditModal" onclick="if(event.target===this)this.classList.remove('show')">
+  <div class="modal-box credit-box">
+    <div class="hdr-logo" style="margin:0 auto 12px;width:48px;height:48px;border-radius:12px;"><i data-ico="zap"></i></div>
+    <div class="modal-title">คลังแก้ไฟ กฟส.คำชะอี</div>
+    <div class="hdr-sub" style="margin-bottom:16px;">PEA INVENTORY v0.18</div>
+    <div class="modal-body">พัฒนาโดย<br><b style="color:var(--text);">นายพชระ ปรีดากรณ์</b><br>วศก.ผปร. กฟส.คำชะอี</div>
+    <button class="btn-can" onclick="document.getElementById('creditModal').classList.remove('show')">ปิด</button>
   </div>
 </div>
 
@@ -528,7 +534,8 @@ var ICO = {
   trash:'<path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/>',
   printer:'<path d="M6 9V2h12v7"/><rect x="2" y="9" width="20" height="9" rx="2"/><path d="M6 14h12v8H6z"/>',
   camera:'<path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/>',
-  note:'<path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6M8 13h8M8 17h5"/>'
+  note:'<path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6M8 13h8M8 17h5"/>',
+  info:'<circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/>'
 };
 function ico(n) { return '<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + ICO[n] + '</svg>'; }
 document.querySelectorAll('i[data-ico]').forEach(function(e){ e.outerHTML = ico(e.getAttribute('data-ico')); });
