@@ -1343,7 +1343,7 @@ function renderRptList() {
         // ปุ่มยืนยัน "เปิดใบสั่งในระบบแล้ว"
         var openBtn=document.createElement('button');
         if (g.openedAt) {
-          openBtn.textContent='✓ เปิดใบสั่งในระบบแล้ว ('+g.openedAt+') — แตะเพื่อยกเลิก';
+          openBtn.textContent='✓ เปิดใบสั่งในระบบแล้ว ('+fmtTime(g.openedAt)+') — แตะเพื่อยกเลิก';
           openBtn.style.cssText='margin-top:8px;width:100%;padding:9px;border-radius:6px;border:1px solid var(--ok);background:rgba(16,185,129,0.15);color:var(--ok);font-size:12px;cursor:pointer;';
         } else {
           openBtn.textContent='☐ ยืนยันว่าเปิดใบสั่งในระบบแล้ว';
