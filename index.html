@@ -195,8 +195,10 @@ button:active:not(:disabled){transform:scale(0.98);}
   .content{padding:28px 36px;overflow-y:auto;}
   .rpt-tabs{margin:-28px -36px 20px !important;position:sticky;top:-28px;z-index:5;}
   .metric-val{font-size:28px;}
-  #catlist,#trcatlist{columns:2;column-gap:14px;}
-  #catlist .cat-block,#trcatlist .cat-block{break-inside:avoid;}
+  /* grid แทน columns: กางหมวดแล้วหมวดอื่นไม่ย้ายคอลัมน์ */
+  #catlist,#trcatlist{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px 14px;align-items:start;}
+  #catlist .cat-block,#trcatlist .cat-block{margin-bottom:0;}
+  #catlist > .loading,#catlist > .empty,#trcatlist > .loading,#trcatlist > .empty{grid-column:1/-1;}
   .dash-metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:14px;}
   .dash-metrics .metrics{margin-bottom:0 !important;}
   .dash-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;align-items:start;}
