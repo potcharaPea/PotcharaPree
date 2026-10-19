@@ -135,7 +135,11 @@ select.fi option{background:var(--bg2);}
 .sync-btn:hover{border-color:var(--accent);color:var(--accent);}
 .nav-btn{display:flex;align-items:center;gap:6px;transition:color .15s,background .15s;}
 .nav-btn:hover{color:var(--text);}
-.nav-ico{font-size:15px;line-height:1;}
+.nav-ico{font-size:15px;line-height:1;display:inline-flex;}
+.ico{width:1.1em;height:1.1em;vertical-align:-0.2em;flex-shrink:0;}
+.hdr-logo .ico{width:19px;height:19px;color:#1a1200;stroke-width:2.4;}
+.card-title .ico{color:var(--accent);margin-right:2px;}
+.gps-btn .ico{width:18px;height:18px;vertical-align:-4px;}
 .card,.metric,.cat-block,.rpt-card{border-radius:12px;}
 .card{padding:16px;}
 .metric{background:linear-gradient(180deg,var(--bg2),#131824);}
@@ -210,24 +214,24 @@ button:active:not(:disabled){transform:scale(0.98);}
 <div class="top">
 <div class="hdr">
   <div class="hdr-brand">
-    <div class="hdr-logo">⚡</div>
+    <div class="hdr-logo"><i data-ico="zap"></i></div>
     <div>
       <div class="hdr-title">คลังแก้ไฟ กฟส.คำชะอี</div>
       <div class="hdr-sub">PEA INVENTORY v0.18</div>
     </div>
   </div>
   <div style="display:flex;align-items:center;gap:8px;">
-    <button class="sync-btn" onclick="syncAll()">↻ Sync</button>
+    <button class="sync-btn" onclick="syncAll()"><i data-ico="refresh"></i> Sync</button>
     <div class="ver">v0.18</div>
   </div>
 </div>
 
 <div class="nav">
-  <button class="nav-btn active" onclick="nav('w',this)"><span class="nav-ico">📦</span>คลัง / เบิกของ</button>
-  <button class="nav-btn" onclick="nav('t',this)"><span class="nav-ico">🚚</span>รถแก้ไฟ</button>
-  <button class="nav-btn" onclick="nav('k',this)"><span class="nav-ico">↩️</span>คืนของ</button>
-  <button class="nav-btn" onclick="nav('u',this)"><span class="nav-ico">⚡</span>งานแก้ไฟ</button>
-  <button class="nav-btn" onclick="nav('r',this)"><span class="nav-ico">📊</span>Report</button>
+  <button class="nav-btn active" onclick="nav('w',this)"><span class="nav-ico"><i data-ico="box"></i></span>คลัง / เบิกของ</button>
+  <button class="nav-btn" onclick="nav('t',this)"><span class="nav-ico"><i data-ico="truck"></i></span>รถแก้ไฟ</button>
+  <button class="nav-btn" onclick="nav('k',this)"><span class="nav-ico"><i data-ico="undo"></i></span>คืนของ</button>
+  <button class="nav-btn" onclick="nav('u',this)"><span class="nav-ico"><i data-ico="zap"></i></span>งานแก้ไฟ</button>
+  <button class="nav-btn" onclick="nav('r',this)"><span class="nav-ico"><i data-ico="chart"></i></span>Report</button>
 </div>
 </div>
 
@@ -348,7 +352,7 @@ button:active:not(:disabled){transform:scale(0.98);}
       <div class="gps-row">
         <input id="ulat" class="fi" type="text" placeholder="Latitude" readonly style="flex:1;font-size:12px;">
         <input id="ulng" class="fi" type="text" placeholder="Longitude" readonly style="flex:1;font-size:12px;">
-        <button class="gps-btn" onclick="getGPS()">📍</button>
+        <button class="gps-btn" onclick="getGPS()" aria-label="ดึงพิกัด GPS"><i data-ico="pin"></i></button>
       </div>
       <div id="gps-status" style="font-size:11px;color:var(--text2);margin-top:4px;"></div>
     </div>
@@ -369,9 +373,9 @@ button:active:not(:disabled){transform:scale(0.98);}
 <!-- Report -->
 <div id="pr" style="display:none;">
   <div class="rpt-tabs" style="display:flex;margin:-16px -16px 16px;border-bottom:1px solid var(--border);background:var(--bg2);">
-    <button id="stab-r" onclick="showSubTab('r')" style="flex:1;padding:10px;font-size:12px;font-weight:600;border:none;background:none;color:var(--accent);border-bottom:2px solid var(--accent);cursor:pointer;font-family:inherit;">📋 รายการ</button>
-    <button id="stab-d" onclick="showSubTab('d')" style="flex:1;padding:10px;font-size:12px;font-weight:600;border:none;background:none;color:var(--text2);border-bottom:2px solid transparent;cursor:pointer;font-family:inherit;">📊 Dashboard</button>
-    <button id="stab-h" onclick="showSubTab('h')" style="flex:1;padding:10px;font-size:12px;font-weight:600;border:none;background:none;color:var(--text2);border-bottom:2px solid transparent;cursor:pointer;font-family:inherit;">🕐 ประวัติ</button>
+    <button id="stab-r" onclick="showSubTab('r')" style="flex:1;padding:10px;font-size:12px;font-weight:600;border:none;background:none;color:var(--accent);border-bottom:2px solid var(--accent);cursor:pointer;font-family:inherit;"><i data-ico="list"></i> รายการ</button>
+    <button id="stab-d" onclick="showSubTab('d')" style="flex:1;padding:10px;font-size:12px;font-weight:600;border:none;background:none;color:var(--text2);border-bottom:2px solid transparent;cursor:pointer;font-family:inherit;"><i data-ico="chart"></i> Dashboard</button>
+    <button id="stab-h" onclick="showSubTab('h')" style="flex:1;padding:10px;font-size:12px;font-weight:600;border:none;background:none;color:var(--text2);border-bottom:2px solid transparent;cursor:pointer;font-family:inherit;"><i data-ico="clock"></i> ประวัติ</button>
   </div>
   <div id="sub-r">
   <div class="metrics m4">
@@ -411,23 +415,23 @@ button:active:not(:disabled){transform:scale(0.98);}
     </div>
     <div class="dash-grid">
     <div class="card">
-      <div class="card-title">📤 ปลายทางที่โอนพัสดุ</div>
+      <div class="card-title"><i data-ico="send"></i> ปลายทางที่โอนพัสดุ</div>
       <div id="d-transfer-dest"><div class="empty">เลือกเดือนก่อนครับ</div></div>
     </div>
     <div class="card">
-      <div class="card-title">📅 งานแก้ไฟรายวัน</div>
+      <div class="card-title"><i data-ico="calendar"></i> งานแก้ไฟรายวัน</div>
       <div id="chartDailyWrap"><div style="position:relative;height:180px;"><canvas id="chartDaily"></canvas></div></div>
     </div>
     <div class="card">
-      <div class="card-title">🔧 อุปกรณ์ที่ใช้บ่อยสุด</div>
+      <div class="card-title"><i data-ico="wrench"></i> อุปกรณ์ที่ใช้บ่อยสุด</div>
       <div id="d-top"><div class="empty">เลือกเดือนก่อนครับ</div></div>
     </div>
     <div class="card">
-      <div class="card-title">🕐 เปรียบเทียบงานแต่ละกะ</div>
+      <div class="card-title"><i data-ico="clock"></i> เปรียบเทียบงานแต่ละกะ</div>
       <div id="d-shift"><div class="empty">เลือกเดือนก่อนครับ</div></div>
     </div>
     <div class="card">
-      <div class="card-title">🥧 สัดส่วนอุปกรณ์ที่ใช้</div>
+      <div class="card-title"><i data-ico="pie"></i> สัดส่วนอุปกรณ์ที่ใช้</div>
       <div id="chartPieWrap"><div style="position:relative;height:200px;"><canvas id="chartPie"></canvas></div></div>
     </div>
     </div><!-- end dash-grid -->
@@ -443,7 +447,7 @@ button:active:not(:disabled){transform:scale(0.98);}
 
 <!-- Watermark (อยู่ใน content เพื่อให้เลื่อนเห็นบน PC) -->
 <div class="dev-credit">
-  ⚡ พัฒนาโดย<br>
+  พัฒนาโดย<br>
   นายพชระ ปรีดากรณ์<br>
   วศก.ผปร. กฟส.คำชะอี<br>
   PEA INVENTORY v0.18
@@ -467,7 +471,7 @@ button:active:not(:disabled){transform:scale(0.98);}
 <!-- Modal แก้ไขพัสดุในใบงาน -->
 <div class="modal-overlay" id="editJobModal">
   <div class="modal-box" style="max-width:400px;">
-    <div class="modal-title" id="editJobTitle">✏️ แก้ไขจำนวนพัสดุ</div>
+    <div class="modal-title" id="editJobTitle">แก้ไขจำนวนพัสดุ</div>
     <div style="font-size:11px;color:var(--text3);font-family:'IBM Plex Mono',monospace;margin-bottom:12px;" id="editJobSub"></div>
     <div style="margin-bottom:12px;">
       <label style="font-size:12px;color:var(--text2);display:block;margin-bottom:4px;">จำนวนใหม่</label>
@@ -486,7 +490,7 @@ button:active:not(:disabled){transform:scale(0.98);}
 <!-- Modal เพิ่มอุปกรณ์เข้าใบงาน -->
 <div class="modal-overlay" id="addJobModal">
   <div class="modal-box" style="max-width:420px;">
-    <div class="modal-title">➕ เพิ่มอุปกรณ์เข้าใบงาน</div>
+    <div class="modal-title">เพิ่มอุปกรณ์เข้าใบงาน</div>
     <div style="font-size:11px;color:var(--text3);font-family:'IBM Plex Mono',monospace;margin-bottom:12px;" id="addJobSub"></div>
     <div class="fg">
       <label class="fl">อุปกรณ์ (ตัดจากรถแก้ไฟ)</label>
@@ -503,6 +507,30 @@ button:active:not(:disabled){transform:scale(0.98);}
 
 
 <script>
+// ไอคอนเส้น (แทน emoji) · ใช้ ico('ชื่อ') ใน JS หรือ <i data-ico="ชื่อ"></i> ใน HTML
+var ICO = {
+  zap:'<path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"/>',
+  refresh:'<path d="M21 12a9 9 0 1 1-2.6-6.4L21 8"/><path d="M21 3v5h-5"/>',
+  box:'<path d="M21 8 12 3 3 8v8l9 5 9-5z"/><path d="m3 8 9 5 9-5M12 13v8"/>',
+  truck:'<path d="M1 4h14v12H1z"/><path d="M15 8h4l3 3v5h-7"/><circle cx="5.5" cy="18.5" r="2"/><circle cx="18.5" cy="18.5" r="2"/>',
+  undo:'<path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/>',
+  chart:'<path d="M3 3v18h18"/><path d="M8 16v-4M13 16V8M18 16v-7"/>',
+  pin:'<path d="M12 22s7-6.2 7-12a7 7 0 0 0-14 0c0 5.8 7 12 7 12z"/><circle cx="12" cy="10" r="2.5"/>',
+  list:'<path d="M9 6h12M9 12h12M9 18h12M4 6h.01M4 12h.01M4 18h.01"/>',
+  clock:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+  send:'<path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4z"/>',
+  calendar:'<rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>',
+  wrench:'<path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.5 2.5-2.4-.6-.6-2.4z"/>',
+  pie:'<path d="M21.2 15.9A10 10 0 1 1 8 2.8"/><path d="M22 12A10 10 0 0 0 12 2v10z"/>',
+  plus:'<path d="M12 5v14M5 12h14"/>',
+  trash:'<path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/>',
+  printer:'<path d="M6 9V2h12v7"/><rect x="2" y="9" width="20" height="9" rx="2"/><path d="M6 14h12v8H6z"/>',
+  camera:'<path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/>',
+  note:'<path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6M8 13h8M8 17h5"/>'
+};
+function ico(n) { return '<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + ICO[n] + '</svg>'; }
+document.querySelectorAll('i[data-ico]').forEach(function(e){ e.outerHTML = ico(e.getAttribute('data-ico')); });
+
 // Supabase (ย้ายจาก GAS) · ตาราง/ฟังก์ชันดู supabase/schema.sql
 var SB_URL = 'https://clerrwljmmqkxgkegomn.supabase.co/rest/v1/';
 var SB_KEY = 'sb_publishable_CW8xFaBr_THjIK4n7LRIEg_mJ6yZgtR';
@@ -1020,15 +1048,15 @@ function getGPS() {
     function(pos){
       document.getElementById('ulat').value=pos.coords.latitude.toFixed(6);
       document.getElementById('ulng').value=pos.coords.longitude.toFixed(6);
-      st.textContent='✅ ได้พิกัดแล้ว (±'+Math.round(pos.coords.accuracy)+' ม.)';
+      st.textContent='✓ ได้พิกัดแล้ว (±'+Math.round(pos.coords.accuracy)+' ม.)';
     },
     function(err){
       var msg={
-        1:'❌ ถูกปฏิเสธสิทธิ์ — อนุญาตตำแหน่งให้เว็บนี้ และเปิดด้วย Chrome/Safari (ไม่ใช่เบราว์เซอร์ในแอป LINE)',
-        2:'❌ หาตำแหน่งไม่ได้ — เช็คว่าเปิด GPS/Location ของเครื่องแล้ว และอยู่ที่มีสัญญาณ',
-        3:'❌ หมดเวลา — ลองกดใหม่อีกครั้ง'
+        1:'✕ ถูกปฏิเสธสิทธิ์ — อนุญาตตำแหน่งให้เว็บนี้ และเปิดด้วย Chrome/Safari (ไม่ใช่เบราว์เซอร์ในแอป LINE)',
+        2:'✕ หาตำแหน่งไม่ได้ — เช็คว่าเปิด GPS/Location ของเครื่องแล้ว และอยู่ที่มีสัญญาณ',
+        3:'✕ หมดเวลา — ลองกดใหม่อีกครั้ง'
       };
-      document.getElementById('gps-status').textContent = msg[err&&err.code] || '❌ ดึงพิกัดไม่ได้';
+      document.getElementById('gps-status').textContent = msg[err&&err.code] || '✕ ดึงพิกัดไม่ได้';
     },
     { enableHighAccuracy:true, timeout:10000, maximumAge:0 }
   );
@@ -1195,7 +1223,7 @@ function renderRptList() {
     mHdr.className='month-hdr';
     var mLeft=document.createElement('span');
     mLeft.style.cssText='font-size:13px;font-weight:600;color:var(--accent);';
-    mLeft.textContent='📅 '+month;
+    mLeft.innerHTML=ico('calendar')+' '+month;
     var mRight=document.createElement('span');
     mRight.style.cssText='font-size:11px;color:var(--text2);';
     mRight.textContent=keys.length+' รายการ';
@@ -1231,7 +1259,7 @@ function renderRptList() {
 
       var nameDiv=document.createElement('div');
       nameDiv.className='rpt-name';
-      if (g.lat&&g.lng) { var pin=document.createElement('span'); pin.style.color='var(--ok)'; pin.textContent='📍 '; nameDiv.appendChild(pin); }
+      if (g.lat&&g.lng) { var pin=document.createElement('span'); pin.style.color='var(--ok)'; pin.innerHTML=ico('pin')+' '; nameDiv.appendChild(pin); }
       nameDiv.appendChild(document.createTextNode(g.location||''));
 
       topLeft.appendChild(bdgRow); topLeft.appendChild(nameDiv);
@@ -1271,7 +1299,7 @@ function renderRptList() {
       if (g.note&&g.note.trim()) {
         var noteDiv=document.createElement('div');
         noteDiv.style.cssText='font-size:12px;color:var(--text2);margin-top:6px;padding:6px 8px;background:rgba(99,102,241,0.08);border-left:3px solid var(--accent);border-radius:0 4px 4px 0;';
-        noteDiv.innerHTML='<span style="font-size:11px;color:var(--text3);display:block;margin-bottom:2px;">📝 หมายเหตุ</span>'+g.note;
+        noteDiv.innerHTML='<span style="font-size:11px;color:var(--text3);display:block;margin-bottom:2px;">'+ico('note')+' หมายเหตุ</span>'+g.note;
         detail.appendChild(noteDiv);
       }
 
@@ -1299,14 +1327,14 @@ function renderRptList() {
         // ปุ่มเพิ่มอุปกรณ์เข้าใบงาน (กรณีตัดใส่ของไม่ครบ) — ตัดจากรถ
         var addItemBtn=document.createElement('button');
         addItemBtn.style.cssText='margin-top:6px;width:100%;padding:9px;border-radius:6px;border:1px dashed var(--accent);background:rgba(99,102,241,0.08);color:var(--accent);font-size:12px;cursor:pointer;';
-        addItemBtn.textContent='➕ เพิ่มอุปกรณ์ (ตัดจากรถ)';
+        addItemBtn.innerHTML=ico('plus')+' เพิ่มอุปกรณ์ (ตัดจากรถ)';
         addItemBtn.onclick=(function(k){ return function(e){ e.stopPropagation(); openAddJobModal(k); }; })(key);
         detail.appendChild(addItemBtn);
 
         // ปุ่มยืนยัน "เปิดใบสั่งในระบบแล้ว"
         var openBtn=document.createElement('button');
         if (g.openedAt) {
-          openBtn.textContent='✅ เปิดใบสั่งในระบบแล้ว ('+g.openedAt+') — แตะเพื่อยกเลิก';
+          openBtn.textContent='✓ เปิดใบสั่งในระบบแล้ว ('+g.openedAt+') — แตะเพื่อยกเลิก';
           openBtn.style.cssText='margin-top:8px;width:100%;padding:9px;border-radius:6px;border:1px solid var(--ok);background:rgba(16,185,129,0.15);color:var(--ok);font-size:12px;cursor:pointer;';
         } else {
           openBtn.textContent='☐ ยืนยันว่าเปิดใบสั่งในระบบแล้ว';
@@ -1318,21 +1346,21 @@ function renderRptList() {
         // ปุ่ม Delete
         var delBtn=document.createElement('button');
         delBtn.style.cssText='margin-top:8px;width:100%;padding:8px;border-radius:6px;border:1px solid var(--danger);background:rgba(239,68,68,0.1);color:var(--danger);font-size:12px;cursor:pointer;';
-        delBtn.textContent='🗑️ ลบใบงานนี้';
+        delBtn.innerHTML=ico('trash')+' ลบใบงานนี้';
         delBtn.onclick=(function(k){ return function(e){ e.stopPropagation(); deleteJob(k); }; })(key);
         detail.appendChild(delBtn);
       }
 
       var printBtn=document.createElement('button');
       printBtn.className='btn-print';
-      printBtn.textContent='🖨️ พิมพ์ใบงาน PDF';
+      printBtn.innerHTML=ico('printer')+' พิมพ์ใบงาน PDF';
       printBtn.onclick=(function(k){ return function(e){ e.stopPropagation(); printJob(k); }; })(key);
       detail.appendChild(printBtn);
 
       var imgBtn=document.createElement('button');
       imgBtn.className='btn-print';
       imgBtn.style.cssText='border-color:var(--ok);background:rgba(16,185,129,0.1);color:var(--ok);';
-      imgBtn.textContent='📷 แคปรูปใบงาน / แชร์';
+      imgBtn.innerHTML=ico('camera')+' แคปรูปใบงาน / แชร์';
       imgBtn.onclick=(function(k){ return function(e){ e.stopPropagation(); shareJobImage(k); }; })(key);
       detail.appendChild(imgBtn);
 
@@ -1351,7 +1379,7 @@ var _editJobCtx = null;
 
 function editJobItem(key, code, qty, unit, name) {
   _editJobCtx = { key: key, code: code, qty: qty, unit: unit, name: name };
-  document.getElementById('editJobTitle').textContent = '✏️ แก้ไข: ' + name;
+  document.getElementById('editJobTitle').textContent = 'แก้ไข: ' + name;
   document.getElementById('editJobSub').textContent = code + ' | ' + unitTH(unit);
   document.getElementById('editJobOriginal').textContent = 'จำนวนเดิม: ' + qty + ' ' + unitTH(unit);
   document.getElementById('editJobQty').value = qty;
@@ -1391,7 +1419,7 @@ function saveEditJobItem() {
           var trItem = tr.find(function(i){ return i.code === ctx.code; });
           if (trItem) trItem.qty = Math.max(0, parseFloat(trItem.qty) - diff);
         }
-        showMsg('แก้ไขจำนวนสำเร็จ ✅', true);
+        showMsg('✓ แก้ไขจำนวนสำเร็จ', true);
         renderRptList();
       });
     }
@@ -1461,7 +1489,7 @@ function saveAddJobItem() {
         var ex = g.items.find(function(i){ return i.code===item.code; });
         if (ex) ex.qty = Number(ex.qty) + qty;
         else g.items.push({ code:item.code, name:item.name, qty:qty, unit:item.unit });
-        showMsg('เพิ่มอุปกรณ์เข้าใบงานสำเร็จ ✅', true);
+        showMsg('✓ เพิ่มอุปกรณ์เข้าใบงานสำเร็จ', true);
         renderRptList();
       });
     }
@@ -1479,7 +1507,7 @@ function deleteJob(key) {
     'จุด: <b>'+g.location+'</b><br>วันที่: <b>'+fmtTime(g.timestamp)+'</b><br><br>ของทุกรายการจะกลับไปอยู่บนรถเหมือนเดิม',
     function(){
       // ยืนยันชั้นที่ 2
-      showConfirm('⚠️ ยืนยันอีกครั้ง',
+      showConfirm('ยืนยันอีกครั้ง',
         'การลบไม่สามารถย้อนกลับได้!<br><br>กด <b>ยืนยัน</b> เพื่อลบใบงานนี้',
         function(){
           showMsg('กำลังลบใบงาน...', 'info');
@@ -1543,7 +1571,7 @@ function printJob(key) {
     +'<style>body{font-family:sans-serif;padding:24px;color:#111;}'
     +'.no-print{text-align:center;margin-top:20px;}@media print{.no-print{display:none;}}</style></head><body>'
     +jobSheetInner(g,key)
-    +'<div class="no-print" style="display:flex;gap:8px;justify-content:center;"><button onclick="window.close()" style="padding:8px 24px;background:#555;color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:13px;">← กลับ</button><button onclick="window.print()" style="padding:8px 24px;background:#1a73e8;color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:13px;">🖨️ พิมพ์</button></div>'
+    +'<div class="no-print" style="display:flex;gap:8px;justify-content:center;"><button onclick="window.close()" style="padding:8px 24px;background:#555;color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:13px;">← กลับ</button><button onclick="window.print()" style="padding:8px 24px;background:#1a73e8;color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:13px;">พิมพ์</button></div>'
     +'</body></html>';
   win.document.write(html);
   win.document.close();
@@ -1585,7 +1613,7 @@ function toggleJobOpened(key) {
   apiPost({action:'toggleJobOpened', jobId:key, opened:willOpen}, function(err,res){
     if (err||!res||!res.success) { showMsg('เกิดข้อผิดพลาด: '+(res&&res.error||''), false); return; }
     g.openedAt=res.openedAt||'';
-    showMsg(willOpen?'ยืนยันเปิดใบสั่งแล้ว ✅':'ยกเลิกแล้ว', true);
+    showMsg(willOpen?'✓ ยืนยันเปิดใบสั่งแล้ว':'ยกเลิกแล้ว', true);
     renderRptList();
   });
 }
