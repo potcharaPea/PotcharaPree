@@ -126,36 +126,109 @@ select.fi option{background:var(--bg2);}
 .btn-print{margin-top:10px;width:100%;padding:8px;border-radius:6px;border:1px solid var(--info);background:rgba(59,130,246,0.1);color:var(--info);font-size:12px;cursor:pointer;font-family:"IBM Plex Sans Thai",sans-serif;}
 .dash-bar{height:8px;background:var(--accent);border-radius:4px;margin-top:4px;}
 
-/* เวอร์ชัน PC — จอกว้างขึ้น ดูง่าย (ponytail: media query ล้วน ไม่ต้องมีหน้าแยก) */
+/* ===== v0.18 ตกแต่ง UX/UI ===== */
+.top{position:sticky;top:0;z-index:50;}
+.hdr{position:static;}
+.hdr-brand{display:flex;align-items:center;gap:10px;}
+.hdr-logo{width:34px;height:34px;border-radius:9px;background:linear-gradient(135deg,#fbbf24,#d97706);display:grid;place-items:center;font-size:18px;box-shadow:0 2px 12px rgba(245,158,11,0.3);flex-shrink:0;}
+.sync-btn{padding:6px 12px;border-radius:6px;transition:border-color .15s,color .15s;}
+.sync-btn:hover{border-color:var(--accent);color:var(--accent);}
+.nav-btn{display:flex;align-items:center;gap:6px;transition:color .15s,background .15s;}
+.nav-btn:hover{color:var(--text);}
+.nav-ico{font-size:15px;line-height:1;}
+.card,.metric,.cat-block,.rpt-card{border-radius:12px;}
+.card{padding:16px;}
+.metric{background:linear-gradient(180deg,var(--bg2),#131824);}
+.cat-block,.rpt-card{transition:border-color .15s;}
+.cat-block:hover{border-color:var(--border2);}
+.item-row:hover{background:rgba(255,255,255,0.025);}
+/* ช่องกรอก 16px: iPhone จะไม่ซูมหน้าเองตอนแตะ */
+.fi,.search-box input{font-size:16px;min-height:42px;transition:border-color .15s,box-shadow .15s;}
+.fi:focus,.search-box input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(245,158,11,0.15);}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
+button{transition:filter .15s,background .15s,border-color .15s,color .15s,transform .06s;}
+button:active:not(:disabled){transform:scale(0.98);}
+.btn-sub:hover:not(:disabled){filter:brightness(1.1);}
+.btn-add:hover{background:rgba(59,130,246,0.2);}
+.btn-prim:hover{background:rgba(245,158,11,0.2);}
+.btn-can:hover{border-color:var(--text2);color:var(--text);}
+.subtab{transition:border-color .15s,color .15s,background .15s;}
+.subtab:hover:not(.active){color:var(--text);border-color:var(--border2);}
+/* ข้อความแจ้งผล → กล่องลอยล่างจอ เห็นได้แม้เลื่อนหน้าอยู่ */
+.msg{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:1000;width:max-content;max-width:calc(100% - 32px);margin:0;border-radius:10px;border-left-width:4px;box-shadow:0 10px 30px rgba(0,0,0,0.5);font-weight:500;animation:toastIn .2s ease-out;}
+.msg.ok{background:#073b2c;color:#a7f3d0;}
+.msg.err{background:#4c1414;color:#fecaca;}
+@keyframes toastIn{from{opacity:0;transform:translate(-50%,10px);}}
+.modal-overlay{backdrop-filter:blur(3px);}
+.modal-overlay.show .modal-box{animation:pop .18s ease-out;}
+@keyframes pop{from{opacity:0;transform:scale(0.96);}}
+.modal-box{box-shadow:0 20px 60px rgba(0,0,0,0.6);}
+.rpt-tabs button{transition:color .15s;}
+
+/* แท็บเล็ต */
 @media (min-width:768px){
   .app{max-width:920px;border-left:1px solid var(--border);border-right:1px solid var(--border);}
   .content{padding:24px 32px;}
   .metrics{gap:14px;}
+  .m4{grid-template-columns:repeat(4,1fr);}
+  .rpt-tabs{margin:-24px -32px 20px !important;}
   /* การ์ดที่เป็นฟอร์มกรอก ไม่ต้องยืดเต็มจอกว้าง (กันช่อง input ยาวเกินจนดูโล่ง) */
-  #sbk .card,#stf .card,#pk .card,#pu .card,#addForm .card,#editForm .card{max-width:620px;}
+  #sbk .card,#stf .card,#pk .card,#pu .card,#addForm .card,#editForm .card{max-width:720px;}
+}
+
+/* PC: เมนูด้านซ้าย + เนื้อหาเลื่อนในกรอบของตัวเอง (ponytail: media query ล้วน ไม่ต้องมีหน้าแยก) */
+@media (min-width:1024px){
+  body{background:#0b0d13;}
+  .app{max-width:1280px;height:100vh;display:grid;grid-template-columns:230px minmax(0,1fr);grid-template-rows:auto minmax(0,1fr);}
+  .top{display:contents;}
+  .hdr{grid-column:1/-1;padding:14px 24px;}
+  .hdr-title{font-size:17px;}
+  .nav{flex-direction:column;overflow-y:auto;border-bottom:none;border-right:1px solid var(--border);padding:16px 12px;gap:4px;}
+  .nav-btn{padding:11px 14px;border-bottom:none;border-radius:8px;font-size:14px;gap:10px;}
+  .nav-btn:hover{background:var(--bg3);}
+  .nav-btn.active{background:rgba(245,158,11,0.12);}
+  .nav-ico{font-size:17px;width:22px;text-align:center;}
+  .content{padding:28px 36px;overflow-y:auto;}
+  .rpt-tabs{margin:-28px -36px 20px !important;position:sticky;top:-28px;z-index:5;}
+  .metric-val{font-size:28px;}
+  #catlist,#trcatlist{columns:2;column-gap:14px;}
+  #catlist .cat-block,#trcatlist .cat-block{break-inside:avoid;}
+  .dash-metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:14px;}
+  .dash-metrics .metrics{margin-bottom:0 !important;}
+  .dash-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;align-items:start;}
+  .dash-grid .card{margin-bottom:0;}
+  #sub-d > div:first-child{max-width:420px;}
+  .content::-webkit-scrollbar,.nav::-webkit-scrollbar{width:10px;}
+  .content::-webkit-scrollbar-thumb{background:var(--border);border-radius:10px;border:3px solid var(--bg);}
+  .content::-webkit-scrollbar-thumb:hover{background:var(--border2);}
 }
 </style>
 </head>
 <body>
 <div class="app">
 
+<div class="top">
 <div class="hdr">
-  <div>
-    <div class="hdr-title">คลังแก้ไฟ กฟส.คำชะอี</div>
-    <div class="hdr-sub">PEA INVENTORY v0.17</div>
+  <div class="hdr-brand">
+    <div class="hdr-logo">⚡</div>
+    <div>
+      <div class="hdr-title">คลังแก้ไฟ กฟส.คำชะอี</div>
+      <div class="hdr-sub">PEA INVENTORY v0.18</div>
+    </div>
   </div>
   <div style="display:flex;align-items:center;gap:8px;">
     <button class="sync-btn" onclick="syncAll()">↻ Sync</button>
-    <div class="ver">v0.17</div>
+    <div class="ver">v0.18</div>
   </div>
 </div>
 
 <div class="nav">
-  <button class="nav-btn active" onclick="nav('w',this)">คลัง / เบิกของ</button>
-  <button class="nav-btn" onclick="nav('t',this)">รถแก้ไฟ</button>
-  <button class="nav-btn" onclick="nav('k',this)">คืนของ</button>
-  <button class="nav-btn" onclick="nav('u',this)">งานแก้ไฟ</button>
-  <button class="nav-btn" onclick="nav('r',this)">Report</button>
+  <button class="nav-btn active" onclick="nav('w',this)"><span class="nav-ico">📦</span>คลัง / เบิกของ</button>
+  <button class="nav-btn" onclick="nav('t',this)"><span class="nav-ico">🚚</span>รถแก้ไฟ</button>
+  <button class="nav-btn" onclick="nav('k',this)"><span class="nav-ico">↩️</span>คืนของ</button>
+  <button class="nav-btn" onclick="nav('u',this)"><span class="nav-ico">⚡</span>งานแก้ไฟ</button>
+  <button class="nav-btn" onclick="nav('r',this)"><span class="nav-ico">📊</span>Report</button>
+</div>
 </div>
 
 <div class="content">
@@ -295,7 +368,7 @@ select.fi option{background:var(--bg2);}
 
 <!-- Report -->
 <div id="pr" style="display:none;">
-  <div style="display:flex;margin:-16px -16px 16px;border-bottom:1px solid var(--border);background:var(--bg2);">
+  <div class="rpt-tabs" style="display:flex;margin:-16px -16px 16px;border-bottom:1px solid var(--border);background:var(--bg2);">
     <button id="stab-r" onclick="showSubTab('r')" style="flex:1;padding:10px;font-size:12px;font-weight:600;border:none;background:none;color:var(--accent);border-bottom:2px solid var(--accent);cursor:pointer;font-family:inherit;">📋 รายการ</button>
     <button id="stab-d" onclick="showSubTab('d')" style="flex:1;padding:10px;font-size:12px;font-weight:600;border:none;background:none;color:var(--text2);border-bottom:2px solid transparent;cursor:pointer;font-family:inherit;">📊 Dashboard</button>
     <button id="stab-h" onclick="showSubTab('h')" style="flex:1;padding:10px;font-size:12px;font-weight:600;border:none;background:none;color:var(--text2);border-bottom:2px solid transparent;cursor:pointer;font-family:inherit;">🕐 ประวัติ</button>
@@ -322,6 +395,7 @@ select.fi option{background:var(--bg2);}
       </select>
       <select id="dash-yr" class="fi" onchange="renderDash()" style="width:100px;"></select>
     </div>
+    <div class="dash-metrics">
     <div class="metrics m2" style="margin-bottom:10px;">
       <div class="metric"><div class="metric-lbl">งานแก้ไฟ</div><div class="metric-val c-warn" id="d-jobs">—</div></div>
       <div class="metric"><div class="metric-lbl">รายการเบิก</div><div class="metric-val c-info" id="d-withdraws">—</div></div>
@@ -334,6 +408,8 @@ select.fi option{background:var(--bg2);}
       <div class="metric"><div class="metric-lbl">โอนพัสดุ (ครั้ง)</div><div class="metric-val c-purple" id="d-transfers">—</div></div>
       <div class="metric"><div class="metric-lbl">พัสดุที่โอน (ชิ้น)</div><div class="metric-val c-purple" id="d-transfer-items">—</div></div>
     </div>
+    </div>
+    <div class="dash-grid">
     <div class="card">
       <div class="card-title">📤 ปลายทางที่โอนพัสดุ</div>
       <div id="d-transfer-dest"><div class="empty">เลือกเดือนก่อนครับ</div></div>
@@ -354,6 +430,7 @@ select.fi option{background:var(--bg2);}
       <div class="card-title">🥧 สัดส่วนอุปกรณ์ที่ใช้</div>
       <div id="chartPieWrap"><div style="position:relative;height:200px;"><canvas id="chartPie"></canvas></div></div>
     </div>
+    </div><!-- end dash-grid -->
   </div><!-- end sub-d -->
 
   <div id="sub-h" style="display:none;">
@@ -363,6 +440,14 @@ select.fi option{background:var(--bg2);}
     <div id="itemHistoryList"></div>
   </div><!-- end sub-h -->
 </div><!-- end pr -->
+
+<!-- Watermark (อยู่ใน content เพื่อให้เลื่อนเห็นบน PC) -->
+<div class="dev-credit">
+  ⚡ พัฒนาโดย<br>
+  นายพชระ ปรีดากรณ์<br>
+  วศก.ผปร. กฟส.คำชะอี<br>
+  PEA INVENTORY v0.18
+</div>
 
 </div>
 </div>
@@ -416,13 +501,6 @@ select.fi option{background:var(--bg2);}
   </div>
 </div>
 
-<!-- Watermark -->
-<div class="dev-credit">
-  ⚡ พัฒนาโดย<br>
-  นายพชระ ปรีดากรณ์<br>
-  วศก.ผปร. กฟส.คำชะอี<br>
-  PEA INVENTORY v0.17
-</div>
 
 <script>
 // Supabase (ย้ายจาก GAS) · ตาราง/ฟังก์ชันดู supabase/schema.sql
