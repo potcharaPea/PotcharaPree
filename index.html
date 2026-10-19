@@ -1595,21 +1595,23 @@ function shareJobImage(key) {
   box.style.cssText='position:fixed;left:-9999px;top:0;width:640px;padding:28px;background:#fff;color:#111;font-family:"IBM Plex Sans Thai",sans-serif;';
   box.innerHTML=jobSheetInner(g,key);
   document.body.appendChild(box);
-  html2canvas(box, {scale:2, backgroundColor:'#ffffff'}).then(function(canvas){
+  // ข้ามส่วนอื่นของหน้า (รายการ Report หลายร้อยใบ) — ไม่งั้น html2canvas คัดลอกทั้งหน้า มือถือช้าจนแชร์ไม่ขึ้น
+  html2canvas(box, {scale:2, backgroundColor:'#ffffff', ignoreElements:function(el){ return el.parentNode===document.body && el!==box; }}).then(function(canvas){
     document.body.removeChild(box);
     canvas.toBlob(function(blob){
       if (!blob) { showMsg('สร้างรูปไม่ได้', false); return; }
       var fname='ใบงาน_'+(fmtTime(g.timestamp).split(' ')[0]||'').replace(/\//g,'-')+'.png';
       var file=new File([blob], fname, {type:'image/png'});
+      var save=function(){
+        var a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=fname; a.click();
+        setTimeout(function(){ URL.revokeObjectURL(a.href); }, 10000);
+        showMsg('บันทึกรูปใบงานแล้ว', true);
+      };
       if (navigator.canShare && navigator.canShare({files:[file]})) {
         navigator.share({files:[file], title:'ใบงานแก้ไฟ'})
           .then(function(){ showMsg('แชร์ใบงานแล้ว', true); })
-          .catch(function(){ /* ผู้ใช้กดยกเลิก */ });
-      } else {
-        var a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=fname; a.click();
-        URL.revokeObjectURL(a.href);
-        showMsg('บันทึกรูปใบงานแล้ว', true);
-      }
+          .catch(function(e){ if (e && e.name==='AbortError') showMsg('ยกเลิกการแชร์', true); else save(); });   // แชร์ไม่ขึ้น (เช่น NotAllowedError) → บันทึกเป็นไฟล์แทน
+      } else save();
     }, 'image/png');
   }).catch(function(){ if(box.parentNode) document.body.removeChild(box); showMsg('สร้างรูปไม่ได้', false); });
 }
