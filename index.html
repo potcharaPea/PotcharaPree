@@ -1863,6 +1863,7 @@ for(var yi=curYrTH;yi>=curYrTH-2;yi--){var op=document.createElement('option');o
 document.getElementById('dash-mn').value=now.getMonth()+1;
 document.getElementById('acat').innerHTML=CATS.map(function(c){return '<option value="'+c+'">'+c+'</option>';}).join('');
 syncAll();
+if('serviceWorker' in navigator){navigator.serviceWorker.register('./sw.js');}
 </script>
 </body>
 </html>
